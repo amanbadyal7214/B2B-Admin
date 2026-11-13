@@ -27,6 +27,10 @@ function ProductCategoryView({ currentUser }) {
     description: '',
     status: 'Active',
   })
+  const [imageFile, setImageFile] = useState(null)
+  const [imageUrl, setImageUrl] = useState('')
+  const [imagePreview, setImagePreview] = useState('')
+  const [imageMode, setImageMode] = useState('file') // 'file' or 'url'
 
   // Edit Mode State
   const [editingCategory, setEditingCategory] = useState(null)
@@ -82,6 +86,10 @@ function ProductCategoryView({ currentUser }) {
       description: '',
       status: 'Active',
     })
+    setImageFile(null)
+    setImageUrl('')
+    setImagePreview('')
+    setImageMode('file')
     setIsModalOpen(true)
   }
 
@@ -94,7 +102,33 @@ function ProductCategoryView({ currentUser }) {
       description: cat.description || '',
       status: cat.status || 'Active',
     })
+    setImageFile(null)
+    setImageUrl(cat.image || '')
+    setImagePreview(cat.image || '')
+    setImageMode(cat.image ? 'url' : 'file')
     setIsModalOpen(true)
+  }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('Please select a valid image file (JPG, PNG, WEBP).')
+      return
+    }
+    setImageFile(file)
+    setImageUrl('')
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveImage = () => {
+    setImageFile(null)
+    setImageUrl('')
+    setImagePreview('')
   }
 
   const handleSubmit = async (e) => {
@@ -105,18 +139,30 @@ function ProductCategoryView({ currentUser }) {
     setErrorMessage('')
     setSuccessMessage('')
 
-    const payload = {
-      name: formData.name.trim(),
-      code: formData.code.trim() ? formData.code.trim().toUpperCase() : undefined,
-      productType: formData.productType || null,
-      description: formData.description.trim(),
-      status: formData.status === 'Inactive' ? 'Inactive' : 'Active',
+    const submitData = new FormData()
+    submitData.append('name', formData.name.trim())
+    if (formData.code.trim()) {
+      submitData.append('code', formData.code.trim().toUpperCase())
+    }
+    if (formData.productType) {
+      submitData.append('productType', formData.productType)
+    }
+    submitData.append('description', formData.description.trim())
+    submitData.append('status', formData.status === 'Inactive' ? 'Inactive' : 'Active')
+
+    if (imageFile) {
+      submitData.append('image', imageFile)
+    } else if (imageUrl && imageUrl.trim()) {
+      submitData.append('image', imageUrl.trim())
+    } else if (!imagePreview && editingCategory?.image) {
+      // User removed the existing image
+      submitData.append('image', '')
     }
 
     try {
       if (editingCategory) {
         // Update
-        const res = await updateCategoryApi(editingCategory._id, payload)
+        const res = await updateCategoryApi(editingCategory._id, submitData)
         if (res.success) {
           setSuccessMessage(`Category "${formData.name}" updated successfully.`)
           setIsModalOpen(false)
@@ -124,7 +170,7 @@ function ProductCategoryView({ currentUser }) {
         }
       } else {
         // Create
-        const res = await createCategoryApi(payload)
+        const res = await createCategoryApi(submitData)
         if (res.success) {
           setSuccessMessage(`Category "${formData.name}" created successfully.`)
           setIsModalOpen(false)
@@ -477,6 +523,7 @@ function ProductCategoryView({ currentUser }) {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-[#ECE4D5] bg-[#FAF8F5] font-mono text-[10px] uppercase tracking-wider text-[#8A847B]">
+                <th className="py-3 px-4 font-semibold">Image</th>
                 <th className="py-3 px-4 font-semibold">Category Code</th>
                 <th className="py-3 px-4 font-semibold">Category Name</th>
                 <th className="py-3 px-4 font-semibold">Product Type</th>
@@ -489,6 +536,32 @@ function ProductCategoryView({ currentUser }) {
             <tbody className="divide-y divide-[#F2ECE1]">
               {filteredCategories.map((cat) => (
                 <tr key={cat._id} className="hover:bg-[#FAF8F5]/80 transition-colors">
+                  {/* Image Thumbnail */}
+                  <td className="py-3 px-4">
+                    {cat.image ? (
+                      <div className="h-10 w-10 overflow-hidden rounded-lg border border-[#E8DEC9] bg-[#FAF8F5] shadow-2xs">
+                        <img
+                          src={cat.image}
+                          alt={cat.name}
+                          className="h-full w-full object-cover object-center"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(cat)}
+                        className="group flex h-10 w-10 items-center justify-center rounded-lg border-2 border-dashed border-[#DFD5C2] bg-[#FAF8F5] text-[10px] font-mono font-bold text-[#8A847B] hover:border-[#C59A46] hover:bg-[#FAF4E8] hover:text-[#9A6D22] transition-all"
+                        title="Click to add image to this category"
+                      >
+                        <span className="group-hover:hidden">{cat.name ? cat.name.slice(0, 2).toUpperCase() : 'CA'}</span>
+                        <span className="hidden group-hover:inline text-[9px]">+IMG</span>
+                      </button>
+                    )}
+                  </td>
+
                   {/* Code */}
                   <td className="py-3.5 px-4">
                     <span className="font-mono text-[11px] font-bold text-[#9A6D22] bg-[#FAF3E4] px-2 py-0.5 rounded border border-[#E9DCBF]">
@@ -595,28 +668,29 @@ function ProductCategoryView({ currentUser }) {
 
       {/* Modal: Create or Edit Category */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121214]/50 backdrop-blur-xs">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#E2D8C7] bg-[#FFFFFF] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-3.5 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#121214]/60 backdrop-blur-xs overflow-y-auto">
+          <div className="relative w-full max-w-lg rounded-2xl border border-[#E2D8C7] bg-[#FFFFFF] shadow-2xl flex flex-col max-h-[92vh] my-auto animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-[#EAE3D5] px-6 py-4 shrink-0 bg-[#FAF8F5]/80 rounded-t-2xl">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FAF4E8] text-[#9A6D22] border border-[#E5D7B7]">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FAF4E8] text-[#9A6D22] border border-[#E5D7B7]">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="font-serif text-base font-bold text-[#121214]">
-                    {editingCategory ? 'Edit Category' : 'Create Product Category'}
+                    {editingCategory ? 'Edit Product Category' : 'Create Product Category'}
                   </h3>
-                  <p className="text-[10px] uppercase font-mono tracking-wider text-[#9A6D22]">
-                    BVB Wholesale Catalog Definition
+                  <p className="text-[10px] uppercase font-mono tracking-wider text-[#9A6D22] font-semibold">
+                    BVB Wholesale Catalog · Cloudinary Image Enabled
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-lg p-1 text-[#8A847B] hover:bg-[#F5EFE8] hover:text-[#121214] transition-colors"
+                className="rounded-lg p-1.5 text-[#8A847B] hover:bg-[#F5EFE8] hover:text-[#121214] transition-colors"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -624,7 +698,8 @@ function ProductCategoryView({ currentUser }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {/* Modal Body - Scrollable */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               {/* Category Name */}
               <div>
                 <label className="block font-semibold text-[#121214] mb-1">
@@ -640,7 +715,124 @@ function ProductCategoryView({ currentUser }) {
                 />
               </div>
 
-              {/* Product Type Dropdown (Asking for Type!) */}
+              {/* Category Image (PROMINENT SECTION WITH FILE UPLOAD & URL OPTIONS) */}
+              <div className="rounded-xl border border-[#E8DEC9] bg-[#FAF8F5]/90 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block font-bold text-[#121214]">
+                      Category Image
+                    </label>
+                    <span className="text-[10px] font-mono text-[#9A6D22]">
+                      Cloudinary CDN Storage
+                    </span>
+                  </div>
+
+                  {/* Mode Switcher */}
+                  <div className="inline-flex rounded-lg border border-[#E2D8C7] bg-[#FFFFFF] p-0.5 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setImageMode('file')}
+                      className={`px-3 py-1 rounded-md font-semibold transition-all ${
+                        imageMode === 'file'
+                          ? 'bg-[#FAF3E4] text-[#805915] shadow-2xs'
+                          : 'text-[#7A746B] hover:text-[#121214]'
+                      }`}
+                    >
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageMode('url')}
+                      className={`px-3 py-1 rounded-md font-semibold transition-all ${
+                        imageMode === 'url'
+                          ? 'bg-[#FAF3E4] text-[#805915] shadow-2xs'
+                          : 'text-[#7A746B] hover:text-[#121214]'
+                      }`}
+                    >
+                      Paste URL
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  {/* Image Preview Box */}
+                  {imagePreview ? (
+                    <div className="relative group h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-[#C59A46] bg-[#FFFFFF] shadow-sm">
+                      <img
+                        src={imagePreview}
+                        alt="Category Preview"
+                        className="h-full w-full object-cover object-center"
+                        onError={(e) => {
+                          e.target.style.display = 'none'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute inset-0 flex items-center justify-center bg-[#121214]/80 opacity-0 group-hover:opacity-100 transition-opacity text-white text-[10px] font-bold"
+                        title="Remove image"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#DFD5C2] bg-[#FFFFFF] text-[#A8A196]">
+                      <svg className="h-6 w-6 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <span className="text-[9px] font-mono mt-0.5 font-medium">No Image</span>
+                    </div>
+                  )}
+
+                  {/* Input Controls */}
+                  <div className="flex-1">
+                    {imageMode === 'file' ? (
+                      <div>
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#DFD5C2] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#6B6357] hover:bg-[#F3EFE8] hover:border-[#C59A46] transition-all shadow-2xs">
+                          <svg className="h-4 w-4 text-[#9A6D22]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          <span>{imagePreview ? 'Change Photo' : 'Choose Image File'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[10.5px] text-[#8A847B] mt-1.5 leading-relaxed">
+                          Select JPG, PNG, or WEBP from your computer. It uploads directly to Cloudinary.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          type="url"
+                          value={imageUrl}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setImageUrl(val)
+                            setImagePreview(val)
+                            setImageFile(null)
+                          }}
+                          placeholder="https://res.cloudinary.com/... or web URL"
+                          className="w-full rounded-xl border border-[#E8DEC9] bg-[#FFFFFF] p-2.5 text-xs text-[#121214] placeholder-[#A8A196] focus:border-[#C59A46] focus:outline-none"
+                        />
+                        <p className="text-[10.5px] text-[#8A847B] mt-1.5 leading-relaxed">
+                          Paste any Cloudinary image link or external hosted image URL.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Type Dropdown */}
               <div>
                 <label className="block font-semibold text-[#121214] mb-1">
                   Product Type
@@ -702,8 +894,8 @@ function ProductCategoryView({ currentUser }) {
                 />
               </div>
 
-              {/* Modal Buttons */}
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+              {/* Modal Buttons (Pinned / Sticky Footer) */}
+              <div className="pt-3 border-t border-[#ECE4D5] flex items-center justify-end gap-2.5 sticky bottom-0 bg-[#FFFFFF]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -714,7 +906,7 @@ function ProductCategoryView({ currentUser }) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ECC880] to-[#C59A46] px-4 py-2 text-xs font-bold text-[#121214] shadow-sm hover:opacity-95 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ECC880] to-[#C59A46] px-5 py-2 text-xs font-bold text-[#121214] shadow-sm hover:opacity-95 transition-all disabled:opacity-50"
                 >
                   {isSubmitting && (
                     <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#121214] border-t-transparent" />

@@ -39,6 +39,11 @@ axiosInstance.interceptors.request.use(
       if (token && !config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${token}`
       }
+
+      // If data is FormData, remove Content-Type so browser sets correct boundary
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type']
+      }
     } catch (err) {
       console.error('[Axios Request Interceptor] Error attaching token:', err)
     }
