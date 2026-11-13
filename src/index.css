@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  /* Luxury Light Silk & Alabaster Surfaces */
+  --color-bvb-canvas: #FAF8F5;
+  --color-bvb-surface: #FFFFFF;
+  --color-bvb-elevated: #F5EFE8;
+  --color-bvb-subtle: #F0EAE1;
+  --color-bvb-border-hairline: #EFE8DD;
+  --color-bvb-border-subtle: #E2D9CB;
+  --color-bvb-border-strong: #CFC4B2;
+
+  /* Champagne & Brushed Warm Gold */
+  --color-bvb-gold-50: #FDF9F0;
+  --color-bvb-gold-100: #F9F1DC;
+  --color-bvb-gold-200: #F3E0B5;
+  --color-bvb-gold-300: #E7C986;
+  --color-bvb-gold-400: #D8AF5D;
+  --color-bvb-gold-primary: #C59A46;
+  --color-bvb-gold-deep: #A4782A;
+  --color-bvb-gold-burnished: #7D5616;
+
+  /* Ink & Typography Neutrals */
+  --color-bvb-ink: #121214;
+  --color-bvb-ink-muted: #55514B;
+  --color-bvb-ink-subtle: #8A847B;
+  --color-bvb-ink-faint: #B5B0A6;
+
+  /* Status Colors */
+  --color-bvb-success: #1E824C;
+  --color-bvb-warning: #B37D14;
+  --color-bvb-danger: #C0392B;
+  --color-bvb-info: #2980B9;
+
+  /* Typography */
+  --font-serif: 'Cormorant Garamond', 'Cinzel', Georgia, serif;
+  --font-cinzel: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Montserrat', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #FAF8F5;
+    color: #121214;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+    width: 100%;
+  }
+}
+
+/* Luxury Light Atmosphere & Shimmer */
+.luxury-silk-bg {
+  background-color: #FAF8F5;
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(216, 175, 93, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(197, 154, 70, 0.07) 0%, transparent 45%),
+    linear-gradient(135deg, #FAF8F5 0%, #F6F1EA 50%, #FAF8F5 100%);
+}
+
+.luxury-card-shadow {
+  box-shadow:
+    0 1px 2px rgba(18, 18, 20, 0.03),
+    0 12px 32px -4px rgba(138, 110, 60, 0.08),
+    0 24px 60px -12px rgba(18, 18, 20, 0.05);
+}
+
+.luxury-card-border {
+  border: 1px solid #EBE4D7;
+  position: relative;
+}
+
+.luxury-gold-gradient {
+  background: linear-gradient(135deg, #ECC880 0%, #D4A347 45%, #BA8428 100%);
+}
+
+.luxury-gold-text {
+  background: linear-gradient(135deg, #A87926 0%, #C99B45 50%, #875C17 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.luxury-shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-shimmer-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  transition: all 0.75s ease;
+  pointer-events: none;
+}
+
+.luxury-shimmer-btn:hover::after {
+  left: 130%;
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 3s ease-in-out infinite;
+}
