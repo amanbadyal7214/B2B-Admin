@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import bvbLogo from '../assets/bvb-logo.png'
 import bannerImg from '../assets/banner-season-edit.jpg'
 import { adminAccessApi } from '../api'
 
 export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCancel }) {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
@@ -75,6 +77,8 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
       if (onLoginSuccess) {
         onLoginSuccess(userProfile)
       }
+
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       console.error('[AdminLogin] Authorization error:', err)
       const serverMessage =
