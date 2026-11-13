@@ -1,72 +1,8 @@
 import { useState } from 'react'
 
-export default function AdminDashboardPreview({ user }) {
+export default function AdminDashboardPreview({ user, orders = [], kpi = {} }) {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [selectedOrder, setSelectedOrder] = useState(null)
-
-  // Sample luxury wholesale orders for B2B garment commerce
-  const orders = [
-    {
-      id: 'BVB-ORD-9281',
-      retailer: 'Apex Luxury Apparel & Co.',
-      location: 'Mumbai, Maharashtra',
-      items: 'Heavyweight Loopback Terry Hoodie (Pack of 50)',
-      sku: 'BVB-HD-450',
-      units: 150,
-      total: '₹4,35,000',
-      status: 'CONFIRMED',
-      date: 'Today, 14:20',
-      tier: 'Diamond Wholesale',
-    },
-    {
-      id: 'BVB-ORD-9280',
-      retailer: 'Sartorial Streetwear Collective',
-      location: 'Bengaluru, Karnataka',
-      items: 'Brushed French Terry Cargo Jogger (Pack of 30)',
-      sku: 'BVB-JG-380',
-      units: 90,
-      total: '₹2,61,000',
-      status: 'DISPATCHED',
-      date: 'Today, 11:45',
-      tier: 'Platinum Retail',
-    },
-    {
-      id: 'BVB-ORD-9279',
-      retailer: 'Vogue District Multi-Brand Store',
-      location: 'New Delhi, NCR',
-      items: 'Oversized 280 GSM Acid Wash Tees (Pack of 100)',
-      sku: 'BVB-TS-280',
-      units: 300,
-      total: '₹5,10,000',
-      status: 'PENDING_MOQ',
-      date: 'Yesterday, 18:10',
-      tier: 'Gold Partner',
-    },
-    {
-      id: 'BVB-ORD-9278',
-      retailer: 'Urban Fabric Studios',
-      location: 'Hyderabad, Telangana',
-      items: 'Vintage Wash Drop-Shoulder Sweatshirt (Pack of 40)',
-      sku: 'BVB-SW-320',
-      units: 80,
-      total: '₹1,92,000',
-      status: 'CONFIRMED',
-      date: 'Yesterday, 16:35',
-      tier: 'Silver Partner',
-    },
-    {
-      id: 'BVB-ORD-9277',
-      retailer: 'Opulence Menswear Galleria',
-      location: 'Ahmedabad, Gujarat',
-      items: 'Brushed Champagne Satin Bomber Jacket (Pack of 20)',
-      sku: 'BVB-JK-500',
-      units: 60,
-      total: '₹3,72,000',
-      status: 'INVOICED',
-      date: '12 Nov 2026',
-      tier: 'Diamond Wholesale',
-    },
-  ]
 
   const filteredOrders = orders.filter((o) => {
     if (statusFilter === 'ALL') return true
@@ -106,7 +42,7 @@ export default function AdminDashboardPreview({ user }) {
       default:
         return (
           <span className="rounded-full border border-[#E5E0D5] bg-[#F5F2EC] px-2.5 py-0.5 font-mono text-[10px] text-[#635E56]">
-            {status}
+            {status || 'Pending'}
           </span>
         )
     }
@@ -121,11 +57,11 @@ export default function AdminDashboardPreview({ user }) {
             <div className="inline-flex items-center gap-2 rounded-full border border-[#D9AE6A]/40 bg-[#FFFFFF] px-3 py-0.5 shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-[#1E824C] animate-pulse" />
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#805915]">
-                Active Executive Session Granted
+                {user?.clearance || 'Active Executive Session'}
               </span>
             </div>
             <h1 className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1815]">
-              Welcome to Atelier Command, {user?.name || 'Aman Badyal'}
+              Welcome to Atelier Command, {user?.name || 'Administrator'}
             </h1>
             <p className="mt-1 text-xs text-[#635E56] max-w-2xl leading-relaxed">
               Wholesale order reconciliation, bulk inventory allocation, and verified garment retailer accounts running under active B2B luxury protocols.
@@ -136,14 +72,12 @@ export default function AdminDashboardPreview({ user }) {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => alert('Exporting Wholesale Tax Ledger (CSV / PDF)...')}
               className="rounded-lg border border-[#DFD5C2] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#5A544B] shadow-2xs hover:bg-[#FAF8F5] transition-all"
             >
               Tax Ledger Export
             </button>
             <button
               type="button"
-              onClick={() => alert('New SKU Launch Modal opened')}
               className="luxury-shimmer-btn rounded-lg bg-gradient-to-r from-[#ECC880] to-[#C59A46] px-4 py-2 font-sans text-xs font-bold uppercase tracking-wider text-[#121214] shadow-sm hover:shadow transition-all"
             >
               + New SKU Launch
@@ -161,14 +95,14 @@ export default function AdminDashboardPreview({ user }) {
               Wholesale GMV (MTD)
             </span>
             <span className="rounded-full bg-[#F1F9F3] border border-[#BDE0C7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1E824C]">
-              +18.4%
+              {kpi.gmvGrowth || 'Live'}
             </span>
           </div>
           <div className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#121214]">
-            ₹48,92,400
+            {kpi.grossMerchandiseVolume ? `₹${kpi.grossMerchandiseVolume.toLocaleString('en-IN')}` : '₹0'}
           </div>
           <div className="mt-1 text-[11px] text-[#7A746B]">
-            Across 42 verified apparel stores
+            {kpi.activeStoresText || 'Verified apparel store orders'}
           </div>
         </div>
 
@@ -179,14 +113,14 @@ export default function AdminDashboardPreview({ user }) {
               Pending Pack Dispatches
             </span>
             <span className="rounded-full bg-[#FDF8EE] border border-[#F6DCAD] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#B37D14]">
-              14 Orders
+              {kpi.pendingOrdersCount || 0} Orders
             </span>
           </div>
           <div className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#121214]">
-            1,240 Units
+            {kpi.pendingDispatchesUnits ? `${kpi.pendingDispatchesUnits.toLocaleString('en-IN')} Units` : '0 Units'}
           </div>
           <div className="mt-1 text-[11px] text-[#7A746B]">
-            Ludhiana & Tirupur hubs active
+            Fulfillment hubs active
           </div>
         </div>
 
@@ -197,11 +131,11 @@ export default function AdminDashboardPreview({ user }) {
               Retailer Accounts
             </span>
             <span className="rounded-full bg-[#F0F6FB] border border-[#BCD9EE] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#2980B9]">
-              142 Active
+              {kpi.activeRetailers || 0} Active
             </span>
           </div>
           <div className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#121214]">
-            12 In KYC
+            {kpi.pendingKYC || 0} In KYC
           </div>
           <div className="mt-1 text-[11px] text-[#7A746B]">
             GST & store documentation review
@@ -215,11 +149,11 @@ export default function AdminDashboardPreview({ user }) {
               Reserved Inventory
             </span>
             <span className="rounded-full bg-[#FBF7EE] border border-[#E0D5BE] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#805915]">
-              94.8% SLA
+              {kpi.slaAdherence || '100%'} SLA
             </span>
           </div>
           <div className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#121214]">
-            38,450 pcs
+            {kpi.reservedStockUnits ? `${kpi.reservedStockUnits.toLocaleString('en-IN')} pcs` : '0 pcs'}
           </div>
           <div className="mt-1 text-[11px] text-[#7A746B]">
             Zero oversell under concurrency
@@ -279,47 +213,70 @@ export default function AdminDashboardPreview({ user }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFE9DF]">
-              {filteredOrders.map((ord) => (
-                <tr
-                  key={ord.id}
-                  onClick={() => setSelectedOrder(ord)}
-                  className="hover:bg-[#FAF7F1] cursor-pointer transition-colors"
-                >
-                  <td className="py-4 px-5 font-mono font-semibold text-[#121214]">
-                    {ord.id}
-                    <div className="text-[10px] font-sans font-normal text-[#8A847B]">
-                      {ord.date}
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="py-14 text-center text-[#8A847B]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAF4E8] text-[#9A6D22] border border-[#E5D7B7]">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                          />
+                        </svg>
+                      </div>
+                      <span className="font-semibold text-xs text-[#33302B]">No Wholesale Orders Recorded</span>
+                      <span className="text-[11px] text-[#9A9386] max-w-sm">
+                        Incoming retail orders, MOQ pack reservations, and proforma tax requests will stream here.
+                      </span>
                     </div>
                   </td>
-                  <td className="py-4 px-5">
-                    <div className="font-semibold text-[#121214]">{ord.retailer}</div>
-                    <div className="text-[11px] text-[#7A746B]">{ord.location}</div>
-                  </td>
-                  <td className="py-4 px-5">
-                    <div className="text-[#36322D]">{ord.items}</div>
-                    <span className="font-mono text-[10px] text-[#9A6D22]">{ord.sku}</span>
-                  </td>
-                  <td className="py-4 px-5 text-right font-mono font-medium text-[#121214]">
-                    {ord.units} pcs
-                  </td>
-                  <td className="py-4 px-5 text-right font-mono font-bold text-[#121214]">
-                    {ord.total}
-                  </td>
-                  <td className="py-4 px-5 text-center">{getStatusBadge(ord.status)}</td>
-                  <td className="py-4 px-5 text-right">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        alert(`Viewing Proforma Invoice for ${ord.id}`)
-                      }}
-                      className="rounded border border-[#D9AE6A] bg-[#FFFBF4] px-2.5 py-1 text-[11px] font-semibold text-[#9A6D22] hover:bg-[#F8EED8] transition-colors"
-                    >
-                      Invoice ↗
-                    </button>
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                filteredOrders.map((ord) => (
+                  <tr
+                    key={ord.id}
+                    onClick={() => setSelectedOrder(ord)}
+                    className="hover:bg-[#FAF7F1] cursor-pointer transition-colors"
+                  >
+                    <td className="py-4 px-5 font-mono font-semibold text-[#121214]">
+                      {ord.id}
+                      <div className="text-[10px] font-sans font-normal text-[#8A847B]">
+                        {ord.date}
+                      </div>
+                    </td>
+                    <td className="py-4 px-5">
+                      <div className="font-semibold text-[#121214]">{ord.retailer}</div>
+                      <div className="text-[11px] text-[#7A746B]">{ord.location}</div>
+                    </td>
+                    <td className="py-4 px-5">
+                      <div className="text-[#36322D]">{ord.items}</div>
+                      <span className="font-mono text-[10px] text-[#9A6D22]">{ord.sku}</span>
+                    </td>
+                    <td className="py-4 px-5 text-right font-mono font-medium text-[#121214]">
+                      {ord.units} pcs
+                    </td>
+                    <td className="py-4 px-5 text-right font-mono font-bold text-[#121214]">
+                      {ord.total}
+                    </td>
+                    <td className="py-4 px-5 text-center">{getStatusBadge(ord.status)}</td>
+                    <td className="py-4 px-5 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedOrder(ord)
+                        }}
+                        className="rounded border border-[#D9AE6A] bg-[#FFFBF4] px-2.5 py-1 text-[11px] font-semibold text-[#9A6D22] hover:bg-[#F8EED8] transition-colors"
+                      >
+                        Detail ↗
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -329,7 +286,7 @@ export default function AdminDashboardPreview({ user }) {
           <span>Showing {filteredOrders.length} of {orders.length} orders</span>
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-[#9A6D22]">
-              Live Replica Sync • Ludhiana Gateway
+              Real-time Database Sync Active
             </span>
           </div>
         </div>
@@ -366,7 +323,7 @@ export default function AdminDashboardPreview({ user }) {
               </div>
               <div className="flex justify-between py-1.5 border-b border-[#F5EFE8]">
                 <span className="text-[#7A746B]">Wholesale Tier:</span>
-                <span className="font-medium text-[#9A6D22]">{selectedOrder.tier}</span>
+                <span className="font-medium text-[#9A6D22]">{selectedOrder.tier || 'Verified Retailer'}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-[#F5EFE8]">
                 <span className="text-[#7A746B]">Garment Line:</span>
@@ -393,16 +350,6 @@ export default function AdminDashboardPreview({ user }) {
                 className="rounded-lg border border-[#DFD6C5] px-4 py-2 text-xs font-semibold text-[#635E56] hover:bg-[#FAF8F5]"
               >
                 Dismiss
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  alert(`Proforma lading exported for ${selectedOrder.id}`)
-                  setSelectedOrder(null)
-                }}
-                className="rounded-lg bg-gradient-to-r from-[#ECC880] to-[#C59A46] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#121214]"
-              >
-                Print Proforma Lading
               </button>
             </div>
           </div>

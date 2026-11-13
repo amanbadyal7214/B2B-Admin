@@ -1,34 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import bvbLogo from '../assets/bvb-logo.png'
 import bannerImg from '../assets/banner-season-edit.jpg'
-
-// Demo Credentials for quick evaluation
-const DEMO_ACCOUNTS = {
-  superadmin: {
-    email: 'superadmin@buddyvsbuff.com',
-    password: 'BVB•Executive2026',
-    name: 'Aman Badyal',
-    role: 'Super Administrator',
-    clearance: 'Tier 1 • Full Governance',
-    badge: 'Super Admin',
-  },
-  ops: {
-    email: 'operations@buddyvsbuff.com',
-    password: 'BVB•OpsWarehouse2026',
-    name: 'Vikram Mehta',
-    role: 'Operations & Logistics Lead',
-    clearance: 'Tier 2 • Stock & Dispatch',
-    badge: 'Operations',
-  },
-  finance: {
-    email: 'finance@buddyvsbuff.com',
-    password: 'BVB•FinanceLedger2026',
-    name: 'Suhana Kapoor',
-    role: 'Head of Wholesale Accounts',
-    clearance: 'Tier 2 • Margins & Invoicing',
-    badge: 'Finance',
-  },
-}
+import { adminAccessApi } from '../api'
 
 export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCancel }) {
   const [email, setEmail] = useState('')
@@ -39,23 +12,7 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
   const [isLoading, setIsLoading] = useState(false)
   const [loadingStepText, setLoadingStepText] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedRole, setSelectedRole] = useState('superadmin')
   const [showHelpModal, setShowHelpModal] = useState(false)
-
-  const applyRoleCredentials = useCallback((roleKey) => {
-    setSelectedRole(roleKey)
-    const cred = DEMO_ACCOUNTS[roleKey]
-    if (cred) {
-      setEmail(cred.email)
-      setPassword(cred.password)
-      setErrorMessage('')
-    }
-  }, [])
-
-  // Pre-populate with default role on mount
-  useEffect(() => {
-    applyRoleCredentials('superadmin')
-  }, [applyRoleCredentials])
 
   const handleKeyDown = (e) => {
     if (e.getModifierState) {
@@ -63,7 +20,7 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setErrorMessage('')
 
@@ -84,52 +41,122 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
       return
     }
 
-    // Simulate multi-step enterprise clearance
+    // Authenticate with BVB Backend API using Axios Instance
     setIsLoading(true)
-    setLoadingStepText('Verifying cryptographic token...')
+    setLoadingStepText('Authorizing with BVB Admin Access API...')
 
-    setTimeout(() => {
-      setLoadingStepText('Validating role-based clearance...')
-      setTimeout(() => {
-        setLoadingStepText('Establishing secure 256-bit session...')
-        setTimeout(() => {
-          setIsLoading(false)
+    try {
+      const data = await adminAccessApi({
+        email: email.trim(),
+        password,
+        rememberMe,
+      })
 
-          // Determine profile details
-          const matchedDemo = Object.values(DEMO_ACCOUNTS).find(
-            (acc) => acc.email.toLowerCase() === email.trim().toLowerCase()
-          )
+      if (!data.success) {
+        throw new Error(data.message || 'Authorization failed. Please verify credentials.')
+      }
 
-          const userProfile = {
-            id: matchedDemo ? `BVB-ADM-${Math.floor(1000 + Math.random() * 9000)}` : 'BVB-ADM-7821',
-            email: email.trim(),
-            name: matchedDemo ? matchedDemo.name : 'Authorized Administrator',
-            role: matchedDemo ? matchedDemo.role : 'System Administrator',
-            clearance: matchedDemo ? matchedDemo.clearance : 'Tier 1 • Elevated Access',
-            badge: matchedDemo ? matchedDemo.badge : 'Admin',
-            token: `bvb_jwt_${Math.random().toString(36).substring(2)}_${Date.now()}`,
-            loginTime: new Date().toISOString(),
-          }
+      const userProfile = {
+        ...data.user,
+        token: data.token,
+        loginTime: data.user?.loginTime || new Date().toISOString(),
+      }
 
-          // Persist session
-          try {
-            const serialized = JSON.stringify(userProfile)
-            if (rememberMe) {
-              localStorage.setItem('bvb_admin_session', serialized)
-            } else {
-              sessionStorage.setItem('bvb_admin_session', serialized)
-            }
-          } catch (err) {
-            console.error('Session storage error:', err)
-          }
+      // Persist session
+      const serialized = JSON.stringify(userProfile)
+      if (rememberMe) {
+        localStorage.setItem('bvb_admin_session', serialized)
+        localStorage.setItem('bvb_admin_token', data.token)
+      } else {
+        sessionStorage.setItem('bvb_admin_session', serialized)
+        sessionStorage.setItem('bvb_admin_token', data.token)
+      }
 
-          if (onLoginSuccess) {
-            onLoginSuccess(userProfile)
-          }
-        }, 600)
-      }, 650)
-    }, 550)
+      if (onLoginSuccess) {
+        onLoginSuccess(userProfile)
+      }
+    } catch (err) {
+      console.error('[AdminLogin] Authorization error:', err)
+      const serverMessage =
+        err.response?.data?.message ||
+        (err.code === 'ERR_NETWORK'
+          ? 'Cannot connect to backend server. Please verify backend is running on port 5000.'
+          : err.message)
+
+      setErrorMessage(serverMessage || 'Authorization failed. Please check credentials.')
+    } finally {
+      setIsLoading(false)
+      setLoadingStepText('')
+    }
   }
+
+  const helpModalContent = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121214]/50 backdrop-blur-xs">
+      <div className="relative w-full max-w-lg rounded-2xl border border-[#E2D8C7] bg-[#FFFFFF] p-6 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FAF4E8] text-[#9A6D22] border border-[#E5D7B7]">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-serif text-lg font-bold text-[#121214]">
+                Clearance & Passphrase Protocols
+              </h3>
+              <p className="text-[10px] uppercase font-mono tracking-wider text-[#9A6D22]">
+                Buddy Vs Buff Administrative Office
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowHelpModal(false)}
+            className="rounded-lg p-1 text-[#8A847B] hover:bg-[#F5EFE8] hover:text-[#121214] transition-colors"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3.5 text-xs text-[#55514B]">
+          <div className="rounded-lg border border-[#EFE8DD] bg-[#FAF8F5] p-3">
+            <h4 className="font-semibold text-[#121214] mb-1">
+              1. Authorized Executive Access
+            </h4>
+            <p className="text-[11px] leading-relaxed text-[#6E685E]">
+              Only provisioned administrative accounts with verified clearance (Super Administrator, Operations, or Finance) can access the BVB wholesale console.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-[#EFE8DD] bg-[#FAF8F5] p-3">
+            <h4 className="font-semibold text-[#121214] mb-1">
+              2. Passphrase Recovery & Credential Provisioning
+            </h4>
+            <p className="text-[11px] leading-relaxed text-[#6E685E]">
+              To provision a new administrator account or rotate passkeys, use the authorized management CLI or contact the corporate security administrator.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowHelpModal(false)}
+            className="rounded-lg border border-[#D9AE6A] bg-gradient-to-r from-[#FAF3E4] to-[#F5E6C7] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#7A5220] hover:bg-[#F2DEB5] transition-all shadow-xs"
+          >
+            Acknowledge & Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   const loginCard = (
     <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl border border-[#E9E2D4] bg-[#FFFFFF] shadow-[0_20px_50px_-10px_rgba(110,87,44,0.12),0_1px_3px_rgba(0,0,0,0.04)] lg:grid lg:grid-cols-12">
@@ -260,58 +287,6 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
             Enter authorized administrative credentials to access wholesale orders, catalog inventory, and fiscal reporting.
           </p>
 
-          {/* Demo Role Selector Pills (High UX Value for Testing) */}
-          <div className="mt-5 rounded-xl border border-[#ECE4D5] bg-[#FAF8F5] p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#787165]">
-                Quick Demo Credentials
-              </span>
-              <span className="text-[9px] font-mono text-[#9A6D22] uppercase">
-                Click to load role
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => applyRoleCredentials('superadmin')}
-                className={`rounded-lg py-1.5 px-2 text-center transition-all ${
-                  selectedRole === 'superadmin'
-                    ? 'bg-[#FFFFFF] border-2 border-[#C59A46] text-[#121214] font-semibold shadow-xs'
-                    : 'border border-[#E5DCcb] bg-[#F7F3EC] text-[#6B6458] hover:bg-[#FFFFFF]'
-                }`}
-              >
-                <div className="text-[11px] font-bold truncate">Super Admin</div>
-                <div className="text-[9px] text-[#9A6D22] truncate">Full Control</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyRoleCredentials('ops')}
-                className={`rounded-lg py-1.5 px-2 text-center transition-all ${
-                  selectedRole === 'ops'
-                    ? 'bg-[#FFFFFF] border-2 border-[#C59A46] text-[#121214] font-semibold shadow-xs'
-                    : 'border border-[#E5DCcb] bg-[#F7F3EC] text-[#6B6458] hover:bg-[#FFFFFF]'
-                }`}
-              >
-                <div className="text-[11px] font-bold truncate">Operations</div>
-                <div className="text-[9px] text-[#9A6D22] truncate">Stock & Dispatch</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyRoleCredentials('finance')}
-                className={`rounded-lg py-1.5 px-2 text-center transition-all ${
-                  selectedRole === 'finance'
-                    ? 'bg-[#FFFFFF] border-2 border-[#C59A46] text-[#121214] font-semibold shadow-xs'
-                    : 'border border-[#E5DCcb] bg-[#F7F3EC] text-[#6B6458] hover:bg-[#FFFFFF]'
-                }`}
-              >
-                <div className="text-[11px] font-bold truncate">Finance</div>
-                <div className="text-[9px] text-[#9A6D22] truncate">Invoices & Payouts</div>
-              </button>
-            </div>
-          </div>
-
           {/* Error Notice */}
           {errorMessage && (
             <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-[#F0BCB8] bg-[#FDF2F1] p-3 text-xs text-[#B92D25]">
@@ -335,7 +310,7 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="mt-5 space-y-4">
+          <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="mt-6 space-y-4">
             {/* Admin Identifier */}
             <div>
               <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#47423B]">
@@ -534,7 +509,7 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
             <div className="flex items-center gap-3">
               <span>Audit Trail Active</span>
               <span>•</span>
-              <span>Session Nonce: #{Math.floor(100000 + Math.random() * 900000)}</span>
+              <span>Session Nonce: Operational</span>
             </div>
           </div>
         </div>
@@ -547,75 +522,7 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
     return (
       <div className="py-2">
         {loginCard}
-
-        {/* Security Help Modal */}
-        {showHelpModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121214]/50 backdrop-blur-xs">
-            <div className="relative w-full max-w-lg rounded-2xl border border-[#E2D8C7] bg-[#FFFFFF] p-6 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-3.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FAF4E8] text-[#9A6D22] border border-[#E5D7B7]">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-serif text-lg font-bold text-[#121214]">
-                      Clearance & Passphrase Protocols
-                    </h3>
-                    <p className="text-[10px] uppercase font-mono tracking-wider text-[#9A6D22]">
-                      Buddy Vs Buff Administrative Office
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowHelpModal(false)}
-                  className="rounded-lg p-1 text-[#8A847B] hover:bg-[#F5EFE8] hover:text-[#121214] transition-colors"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="mt-4 space-y-3.5 text-xs text-[#55514B]">
-                <div className="rounded-lg border border-[#EFE8DD] bg-[#FAF8F5] p-3">
-                  <h4 className="font-semibold text-[#121214] mb-1">
-                    1. Pre-configured Demonstration Roles
-                  </h4>
-                  <p className="text-[11px] leading-relaxed text-[#6E685E]">
-                    You can click any role pill above the sign-in form (<span className="font-medium text-[#9A6D22]">Super Admin</span>, <span className="font-medium text-[#9A6D22]">Operations</span>, or <span className="font-medium text-[#9A6D22]">Finance</span>) to automatically load valid executive credentials and inspect the management cockpit.
-                  </p>
-                </div>
-
-                <div className="rounded-lg border border-[#EFE8DD] bg-[#FAF8F5] p-3">
-                  <h4 className="font-semibold text-[#121214] mb-1">
-                    2. Passphrase Recovery & Key Rotation
-                  </h4>
-                  <p className="text-[11px] leading-relaxed text-[#6E685E]">
-                    Passphrase resets require dual-signature authorization from the Lead Operations Director. For hardware passkey registration or emergency token suspension, contact the corporate DevOps lead directly at <span className="font-mono text-[#121214]">security@buddyvsbuff.com</span>.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowHelpModal(false)}
-                  className="rounded-lg border border-[#D9AE6A] bg-gradient-to-r from-[#FAF3E4] to-[#F5E6C7] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#7A5220] hover:bg-[#F2DEB5] transition-all shadow-xs"
-                >
-                  Acknowledge & Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {showHelpModal && helpModalContent}
       </div>
     )
   }
@@ -719,74 +626,7 @@ export default function AdminLogin({ onLoginSuccess, isEmbedded = false, onCance
         </div>
       </footer>
 
-      {/* Security Protocol & Assistance Modal */}
-      {showHelpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#121214]/50 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-2xl border border-[#E2D8C7] bg-[#FFFFFF] p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EAE3D5] pb-3.5">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FAF4E8] text-[#9A6D22] border border-[#E5D7B7]">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-serif text-lg font-bold text-[#121214]">
-                    Clearance & Passphrase Protocols
-                  </h3>
-                  <p className="text-[10px] uppercase font-mono tracking-wider text-[#9A6D22]">
-                    Buddy Vs Buff Administrative Office
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowHelpModal(false)}
-                className="rounded-lg p-1 text-[#8A847B] hover:bg-[#F5EFE8] hover:text-[#121214] transition-colors"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3.5 text-xs text-[#55514B]">
-              <div className="rounded-lg border border-[#EFE8DD] bg-[#FAF8F5] p-3">
-                <h4 className="font-semibold text-[#121214] mb-1">
-                  1. Pre-configured Demonstration Roles
-                </h4>
-                <p className="text-[11px] leading-relaxed text-[#6E685E]">
-                  You can click any role pill above the sign-in form (<span className="font-medium text-[#9A6D22]">Super Admin</span>, <span className="font-medium text-[#9A6D22]">Operations</span>, or <span className="font-medium text-[#9A6D22]">Finance</span>) to automatically load valid executive credentials and inspect the management cockpit.
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-[#EFE8DD] bg-[#FAF8F5] p-3">
-                <h4 className="font-semibold text-[#121214] mb-1">
-                  2. Passphrase Recovery & Key Rotation
-                </h4>
-                <p className="text-[11px] leading-relaxed text-[#6E685E]">
-                  Passphrase resets require dual-signature authorization from the Lead Operations Director. For hardware passkey registration or emergency token suspension, contact the corporate DevOps lead directly at <span className="font-mono text-[#121214]">security@buddyvsbuff.com</span>.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowHelpModal(false)}
-                className="rounded-lg border border-[#D9AE6A] bg-gradient-to-r from-[#FAF3E4] to-[#F5E6C7] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#7A5220] hover:bg-[#F2DEB5] transition-all shadow-xs"
-              >
-                Acknowledge & Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showHelpModal && helpModalContent}
     </div>
   )
 }

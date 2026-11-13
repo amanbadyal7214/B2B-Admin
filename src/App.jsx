@@ -2,15 +2,10 @@ import { useState, useEffect } from 'react'
 import AdminSidebar from './components/AdminSidebar'
 import AdminLogin from './components/AdminLogin'
 import AdminDashboardPreview from './components/AdminDashboardPreview'
+import { clearAdminSession } from './api'
 
 function App() {
-  const [currentUser, setCurrentUser] = useState({
-    name: 'Aman Badyal',
-    email: 'superadmin@buddyvsbuff.com',
-    role: 'Super Administrator',
-    clearance: 'Tier 1 • Full Governance',
-    badge: 'Super Admin',
-  })
+  const [currentUser, setCurrentUser] = useState(null)
   const [isInitializing, setIsInitializing] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [showClearanceModal, setShowClearanceModal] = useState(false)
@@ -40,12 +35,7 @@ function App() {
   }
 
   const handleLogout = () => {
-    try {
-      localStorage.removeItem('bvb_admin_session')
-      sessionStorage.removeItem('bvb_admin_session')
-    } catch {
-      // ignore
-    }
+    clearAdminSession()
     setCurrentUser(null)
   }
 
@@ -135,10 +125,10 @@ function App() {
               </div>
               <div className="text-left hidden sm:block">
                 <div className="text-xs font-bold text-[#121214] leading-tight">
-                  {currentUser.name}
+                  {currentUser?.name || 'Administrator'}
                 </div>
                 <div className="text-[10px] font-mono text-[#9A6D22] leading-tight">
-                  {currentUser.role || 'Super Admin'}
+                  {currentUser?.role || 'Administrator'}
                 </div>
               </div>
               <button
