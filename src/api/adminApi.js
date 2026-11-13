@@ -43,6 +43,29 @@ export const seedAdminsApi = async () => {
 }
 
 /**
+ * Product Category APIs
+ */
+export const getCategoriesApi = async () => {
+  const response = await axiosInstance.get('/api/categories')
+  return response.data
+}
+
+export const createCategoryApi = async (categoryData) => {
+  const response = await axiosInstance.post('/api/categories', categoryData)
+  return response.data
+}
+
+export const updateCategoryApi = async (id, categoryData) => {
+  const response = await axiosInstance.put(`/api/categories/${id}`, categoryData)
+  return response.data
+}
+
+export const deleteCategoryApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/categories/${id}`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

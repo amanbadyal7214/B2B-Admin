@@ -4,6 +4,7 @@ import AdminSidebar from './components/AdminSidebar'
 import AdminLogin from './components/AdminLogin'
 import AdminDashboardPreview from './components/AdminDashboardPreview'
 import AdminManagementView from './components/AdminManagementView'
+import ProductCategoryView from './components/ProductCategoryView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -101,7 +102,7 @@ function App() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search Orders, SKUs, Retailers, GSTIN..."
+                      placeholder="Search Catalog, Categories, Admins, SKUs..."
                       className="w-full rounded-xl border border-[#E8DEC9] bg-[#FCFBF8] py-2 pl-10 pr-4 text-xs text-[#121214] placeholder-[#A8A196] focus:border-[#C59A46] focus:outline-none focus:ring-1 focus:ring-[#C59A46]/30 font-medium"
                     />
                   </div>
@@ -166,6 +167,16 @@ function App() {
                   <Routes>
                     {/* /dashboard -> Overview */}
                     <Route index element={<AdminDashboardPreview user={currentUser} />} />
+
+                    {/* /dashboard/product-category -> Product Categories Management */}
+                    <Route
+                      path="product-category"
+                      element={<ProductCategoryView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/category"
+                      element={<ProductCategoryView currentUser={currentUser} />}
+                    />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}
                     <Route

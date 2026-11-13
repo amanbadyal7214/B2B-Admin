@@ -17,14 +17,22 @@ export default function AdminSidebar({
     currentPath.includes('/roles') ||
     currentPath.includes('/audit-logs')
 
-  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
+  const isProductPath =
+    currentPath.includes('/product-category') ||
+    currentPath.includes('/product')
 
-  // Keep dropdown open if on an administrator sub-path
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(true)
+
+  // Keep dropdowns open if on their sub-path
   useEffect(() => {
     if (isAdministratorPath) {
       setIsAdminDropdownOpen(true)
     }
-  }, [isAdministratorPath])
+    if (isProductPath) {
+      setIsProductDropdownOpen(true)
+    }
+  }, [isAdministratorPath, isProductPath])
 
   const handleNav = (path) => {
     navigate(path)
@@ -81,7 +89,78 @@ export default function AdminSidebar({
             )}
           </button>
 
-          {/* 2. Administrator Dropdown Menu */}
+          {/* 2. Product Dropdown Menu */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setIsProductDropdownOpen((prev) => !prev)}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                isProductPath
+                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
+                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={isProductPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </span>
+                <span className="tracking-wide text-xs">Product</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <svg
+                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
+                    isProductDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+
+            {/* Dropdown Items */}
+            {isProductDropdownOpen && (
+              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
+                {/* Product Category */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-category')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
+                    currentPath === '/dashboard/product-category'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
+                    </svg>
+                    <span>Product Category</span>
+                  </div>
+                  {currentPath === '/dashboard/product-category' && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Administrator Dropdown Menu */}
           <div className="pt-2">
             <button
               type="button"
