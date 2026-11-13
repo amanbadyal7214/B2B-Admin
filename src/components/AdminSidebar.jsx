@@ -19,6 +19,7 @@ export default function AdminSidebar({
 
   const isProductPath =
     currentPath.includes('/product-category') ||
+    currentPath.includes('/product-type') ||
     currentPath.includes('/product')
 
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
@@ -131,6 +132,31 @@ export default function AdminSidebar({
             {/* Dropdown Items */}
             {isProductDropdownOpen && (
               <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
+                {/* Product Type */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-type')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
+                    currentPath === '/dashboard/product-type'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                    <span>Product Type</span>
+                  </div>
+                  {currentPath === '/dashboard/product-type' && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
                 {/* Product Category */}
                 <button
                   type="button"
@@ -156,6 +182,8 @@ export default function AdminSidebar({
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
                 </button>
+
+                
               </div>
             )}
           </div>

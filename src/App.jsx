@@ -5,6 +5,7 @@ import AdminLogin from './components/AdminLogin'
 import AdminDashboardPreview from './components/AdminDashboardPreview'
 import AdminManagementView from './components/AdminManagementView'
 import ProductCategoryView from './components/ProductCategoryView'
+import ProductTypeView from './components/ProductTypeView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -176,6 +177,16 @@ function App() {
                     <Route
                       path="product/category"
                       element={<ProductCategoryView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/product-type -> Product Types Management */}
+                    <Route
+                      path="product-type"
+                      element={<ProductTypeView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/type"
+                      element={<ProductTypeView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

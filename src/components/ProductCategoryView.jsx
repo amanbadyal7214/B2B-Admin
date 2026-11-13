@@ -4,13 +4,16 @@ import {
   createCategoryApi,
   deleteCategoryApi,
   updateCategoryApi,
+  getProductTypesApi,
 } from '../api'
 
-export default function ProductCategoryView({ currentUser }) {
+function ProductCategoryView({ currentUser }) {
   const [categories, setCategories] = useState([])
+  const [productTypes, setProductTypes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [typeFilter, setTypeFilter] = useState('ALL')
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -20,6 +23,7 @@ export default function ProductCategoryView({ currentUser }) {
   const [formData, setFormData] = useState({
     name: '',
     code: '',
+    productType: '',
     description: '',
     status: 'Active',
   })
@@ -27,20 +31,35 @@ export default function ProductCategoryView({ currentUser }) {
   // Edit Mode State
   const [editingCategory, setEditingCategory] = useState(null)
 
-  // Fetch categories from DB
+  // Fetch categories and product types from DB
   const fetchCategories = async () => {
     setIsLoading(true)
     setErrorMessage('')
     try {
-      const res = await getCategoriesApi()
-      if (res.success && Array.isArray(res.categories)) {
-        setCategories(res.categories)
+      const [catRes, typeRes] = await Promise.allSettled([
+        getCategoriesApi(),
+        getProductTypesApi(),
+      ])
+
+      if (
+        catRes.status === 'fulfilled' &&
+        catRes.value?.success &&
+        Array.isArray(catRes.value.categories)
+      ) {
+        setCategories(catRes.value.categories)
       } else {
         setCategories([])
       }
+
+      if (
+        typeRes.status === 'fulfilled' &&
+        typeRes.value?.success &&
+        Array.isArray(typeRes.value.productTypes)
+      ) {
+        setProductTypes(typeRes.value.productTypes)
+      }
     } catch (err) {
       console.warn('API error fetching categories:', err)
-      // If DB error, display user-friendly notice
       setErrorMessage(
         err.response?.data?.message ||
           'Failed to load categories. Please check MongoDB connection.'
@@ -59,6 +78,7 @@ export default function ProductCategoryView({ currentUser }) {
     setFormData({
       name: '',
       code: '',
+      productType: '',
       description: '',
       status: 'Active',
     })
@@ -70,6 +90,7 @@ export default function ProductCategoryView({ currentUser }) {
     setFormData({
       name: cat.name || '',
       code: cat.code || '',
+      productType: cat.productType?._id || cat.productType || '',
       description: cat.description || '',
       status: cat.status || 'Active',
     })
@@ -84,10 +105,18 @@ export default function ProductCategoryView({ currentUser }) {
     setErrorMessage('')
     setSuccessMessage('')
 
+    const payload = {
+      name: formData.name.trim(),
+      code: formData.code.trim() ? formData.code.trim().toUpperCase() : undefined,
+      productType: formData.productType || null,
+      description: formData.description.trim(),
+      status: formData.status === 'Inactive' ? 'Inactive' : 'Active',
+    }
+
     try {
       if (editingCategory) {
         // Update
-        const res = await updateCategoryApi(editingCategory._id, formData)
+        const res = await updateCategoryApi(editingCategory._id, payload)
         if (res.success) {
           setSuccessMessage(`Category "${formData.name}" updated successfully.`)
           setIsModalOpen(false)
@@ -95,7 +124,7 @@ export default function ProductCategoryView({ currentUser }) {
         }
       } else {
         // Create
-        const res = await createCategoryApi(formData)
+        const res = await createCategoryApi(payload)
         if (res.success) {
           setSuccessMessage(`Category "${formData.name}" created successfully.`)
           setIsModalOpen(false)
@@ -181,10 +210,19 @@ export default function ProductCategoryView({ currentUser }) {
     const matchesSearch =
       (cat.name && cat.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (cat.code && cat.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (cat.slug && cat.slug.toLowerCase().includes(searchQuery.toLowerCase()))
+      (cat.slug && cat.slug.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (cat.productType?.name &&
+        cat.productType.name.toLowerCase().includes(searchQuery.toLowerCase()))
+
     const matchesStatus =
       statusFilter === 'ALL' || cat.status === statusFilter
-    return matchesSearch && matchesStatus
+
+    const matchesType =
+      typeFilter === 'ALL' ||
+      cat.productType?._id === typeFilter ||
+      cat.productType === typeFilter
+
+    return matchesSearch && matchesStatus && matchesType
   })
 
   return (
@@ -204,7 +242,7 @@ export default function ProductCategoryView({ currentUser }) {
             Product Categories
           </h1>
           <p className="text-xs text-[#7A746B] mt-0.5">
-            Organize wholesale styles, apparel classification tiers, and SKU taxonomy.
+            Organize wholesale styles, apparel classification tiers, and SKU taxonomy with Product Types.
           </p>
         </div>
 
@@ -317,25 +355,25 @@ export default function ProductCategoryView({ currentUser }) {
         <div className="rounded-2xl border border-[#ECE4D5] bg-[#FFFFFF] p-4 shadow-2xs">
           <div className="flex items-center justify-between text-[#8A847B]">
             <span className="font-mono text-[10px] uppercase tracking-wider font-semibold">
-              Archived / Inactive
+              Assigned Types
             </span>
-            <div className="h-7 w-7 rounded-lg bg-[#FAF8F5] flex items-center justify-center text-[#8A847B] border border-[#ECE4D5]">
+            <div className="h-7 w-7 rounded-lg bg-[#FAF8F5] flex items-center justify-center text-[#9A6D22] border border-[#ECE4D5]">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
           </div>
-          <div className="mt-2 text-2xl font-serif font-bold text-[#8A847B]">
-            {categories.filter((c) => c.status === 'Inactive').length}
+          <div className="mt-2 text-2xl font-serif font-bold text-[#9A6D22]">
+            {categories.filter((c) => c.productType).length}
           </div>
           <div className="text-[11px] text-[#7A746B] mt-0.5">
-            Hidden from Wholesale Portal
+            Categories with Product Type Linked
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#ECE4D5] rounded-2xl p-3 shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#ECE4D5] rounded-2xl p-3 shadow-2xs">
         {/* Search */}
         <div className="relative flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#9A9386]">
@@ -347,10 +385,31 @@ export default function ProductCategoryView({ currentUser }) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter categories by name, code or slug..."
+            placeholder="Filter categories by name, code, slug or type..."
             className="w-full rounded-xl border border-[#E8DEC9] bg-[#FCFBF8] py-2 pl-9 pr-3 text-xs text-[#121214] placeholder-[#A8A196] focus:border-[#C59A46] focus:outline-none"
           />
         </div>
+
+        {/* Product Type Filter Dropdown */}
+        {productTypes.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-[#7A746B] whitespace-nowrap hidden sm:inline">
+              Type:
+            </span>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="rounded-xl border border-[#E8DEC9] bg-[#FCFBF8] py-2 px-3 text-xs text-[#121214] focus:border-[#C59A46] focus:outline-none"
+            >
+              <option value="ALL">All Types</option>
+              {productTypes.map((pt) => (
+                <option key={pt._id} value={pt._id}>
+                  {pt.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Status Filter Tabs */}
         <div className="flex items-center gap-1.5 border-l border-[#ECE4D5] pl-3">
@@ -420,6 +479,7 @@ export default function ProductCategoryView({ currentUser }) {
               <tr className="border-b border-[#ECE4D5] bg-[#FAF8F5] font-mono text-[10px] uppercase tracking-wider text-[#8A847B]">
                 <th className="py-3 px-4 font-semibold">Category Code</th>
                 <th className="py-3 px-4 font-semibold">Category Name</th>
+                <th className="py-3 px-4 font-semibold">Product Type</th>
                 <th className="py-3 px-4 font-semibold">Slug Identifier</th>
                 <th className="py-3 px-4 font-semibold">Status</th>
                 <th className="py-3 px-4 font-semibold">Created Date</th>
@@ -445,6 +505,25 @@ export default function ProductCategoryView({ currentUser }) {
                       <div className="text-[11px] text-[#8A847B] line-clamp-1 mt-0.5">
                         {cat.description}
                       </div>
+                    )}
+                  </td>
+
+                  {/* Product Type */}
+                  <td className="py-3.5 px-4">
+                    {cat.productType ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FAF4E8] text-[#805915] text-[11px] font-semibold border border-[#E9DCBF]">
+                        <svg className="h-3 w-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          />
+                        </svg>
+                        <span>{cat.productType.name || 'Product Type'}</span>
+                      </span>
+                    ) : (
+                      <span className="font-mono text-[10px] text-[#A8A196]">—</span>
                     )}
                   </td>
 
@@ -561,6 +640,25 @@ export default function ProductCategoryView({ currentUser }) {
                 />
               </div>
 
+              {/* Product Type Dropdown (Asking for Type!) */}
+              <div>
+                <label className="block font-semibold text-[#121214] mb-1">
+                  Product Type
+                </label>
+                <select
+                  value={formData.productType}
+                  onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
+                  className="w-full rounded-xl border border-[#E8DEC9] bg-[#FCFBF8] p-2.5 text-xs text-[#121214] focus:border-[#C59A46] focus:outline-none"
+                >
+                  <option value="">General / No Product Type</option>
+                  {productTypes.map((pt) => (
+                    <option key={pt._id} value={pt._id}>
+                      {pt.name} {pt.code ? `(${pt.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Code */}
               <div>
                 <label className="block font-semibold text-[#121214] mb-1">
@@ -632,3 +730,5 @@ export default function ProductCategoryView({ currentUser }) {
   )
 }
 
+export default ProductCategoryView
+export { ProductCategoryView }

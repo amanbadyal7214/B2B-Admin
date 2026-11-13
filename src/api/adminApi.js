@@ -66,6 +66,34 @@ export const deleteCategoryApi = async (id) => {
 }
 
 /**
+ * Product Type APIs
+ */
+export const getProductTypesApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/product-types', { params })
+  return response.data
+}
+
+export const getProductTypeByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/product-types/${id}`)
+  return response.data
+}
+
+export const createProductTypeApi = async (typeData) => {
+  const response = await axiosInstance.post('/api/product-types', typeData)
+  return response.data
+}
+
+export const updateProductTypeApi = async (id, typeData) => {
+  const response = await axiosInstance.put(`/api/product-types/${id}`, typeData)
+  return response.data
+}
+
+export const deleteProductTypeApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/product-types/${id}`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
