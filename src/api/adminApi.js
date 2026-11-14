@@ -121,8 +121,36 @@ export const deleteSizeApi = async (id) => {
   return response.data
 }
 
-export const seedSizesApi = async () => {
-  const response = await axiosInstance.post('/api/sizes/seed')
+/**
+ * Product Color APIs
+ */
+export const getColorsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/colors', { params })
+  return response.data
+}
+
+export const getColorByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/colors/${id}`)
+  return response.data
+}
+
+export const createColorApi = async (colorData) => {
+  const response = await axiosInstance.post('/api/colors', colorData)
+  return response.data
+}
+
+export const updateColorApi = async (id, colorData) => {
+  const response = await axiosInstance.put(`/api/colors/${id}`, colorData)
+  return response.data
+}
+
+export const deleteColorApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/colors/${id}`)
+  return response.data
+}
+
+export const toggleColorStatusApi = async (id) => {
+  const response = await axiosInstance.patch(`/api/colors/${id}/status`)
   return response.data
 }
 

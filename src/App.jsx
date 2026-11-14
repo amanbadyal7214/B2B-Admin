@@ -7,6 +7,7 @@ import AdminManagementView from './components/AdminManagementView'
 import ProductCategoryView from './components/ProductCategoryView'
 import ProductTypeView from './components/ProductTypeView'
 import ProductSizeView from './components/ProductSizeView'
+import ProductColorView from './components/ProductColorView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -206,6 +207,24 @@ function App() {
                     <Route
                       path="product/sizes"
                       element={<ProductSizeView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/product-color -> Product Colours Management */}
+                    <Route
+                      path="product-color"
+                      element={<ProductColorView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product-colors"
+                      element={<ProductColorView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/color"
+                      element={<ProductColorView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/colors"
+                      element={<ProductColorView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

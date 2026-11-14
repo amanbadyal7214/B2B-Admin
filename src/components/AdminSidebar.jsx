@@ -21,6 +21,7 @@ export default function AdminSidebar({
     currentPath.includes('/product-category') ||
     currentPath.includes('/product-type') ||
     currentPath.includes('/product-size') ||
+    currentPath.includes('/product-color') ||
     currentPath.includes('/product')
 
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
@@ -206,6 +207,32 @@ export default function AdminSidebar({
                     <span>Product Sizes</span>
                   </div>
                   {(currentPath === '/dashboard/product-size' || currentPath === '/dashboard/product-sizes') && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* Product Colours */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-color')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    currentPath === '/dashboard/product-color' || currentPath === '/dashboard/product-colors'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                      />
+                    </svg>
+                    <span>Product Colours</span>
+                  </div>
+                  {(currentPath === '/dashboard/product-color' || currentPath === '/dashboard/product-colors') && (
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
                 </button>
