@@ -4,7 +4,6 @@ import {
   createSizeApi,
   updateSizeApi,
   deleteSizeApi,
-  seedSizesApi,
   getCategoriesApi,
   getProductTypesApi,
 } from '../api'
@@ -196,22 +195,6 @@ function ProductSizeView({ currentUser }) {
     }
   }
 
-  const handleSeedDefaults = async () => {
-    setIsSubmitting(true)
-    setErrorMessage('')
-    try {
-      const res = await seedSizesApi()
-      if (res.success) {
-        setSuccessMessage(res.message || 'Standard BVB wholesale sizes seeded successfully!')
-        fetchInitialData()
-      }
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Failed to seed sizes.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   // Filtered sizes list
   const filteredSizes = useMemo(() => {
     return sizes.filter((s) => {
@@ -265,19 +248,6 @@ function ProductSizeView({ currentUser }) {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleSeedDefaults}
-            disabled={isSubmitting}
-            className="flex items-center gap-2 rounded-xl border border-[#DFD5C2] bg-[#FAF8F5] px-4 py-2.5 text-xs font-semibold text-[#6B6357] transition-all hover:bg-[#F3EFE8] hover:text-[#121214] disabled:opacity-50 cursor-pointer shadow-2xs"
-            title="Populate standard XS-3XL & 28-38 sizes"
-          >
-            <svg className="h-4 w-4 text-[#9A6D22]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Seed Standard Sizes</span>
-          </button>
-
           <button
             type="button"
             onClick={handleOpenAddModal}
@@ -385,20 +355,11 @@ function ProductSizeView({ currentUser }) {
               className="rounded-lg border border-[#E8DEC9] bg-[#FCFBF8] px-2.5 py-1.5 text-xs font-semibold text-[#7A746B] focus:border-[#C59A46] focus:outline-none cursor-pointer"
             >
               <option value="ALL">All Categories</option>
-              {categories.length > 0 && (
-                <optgroup label="DB Categories">
-                  {categories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              <optgroup label="Standard Types">
-                <option value="General">General</option>
-                <option value="Topwear">Topwear</option>
-                <option value="Bottomwear">Bottomwear</option>
-              </optgroup>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -736,11 +697,11 @@ function ProductSizeView({ currentUser }) {
                     Apparel Category (From DB)
                   </label>
                   <select
-                    value={formData.category || formData.categoryType}
+                    value={formData.category || ''}
                     onChange={(e) => {
                       const val = e.target.value
-                      if (!val || val === 'General') {
-                        setFormData({ ...formData, category: '', categoryType: 'General' })
+                      if (!val) {
+                        setFormData({ ...formData, category: '', categoryType: '' })
                       } else {
                         const matchedCat = categories.find((c) => c._id === val || c.name === val)
                         if (matchedCat) {
@@ -756,22 +717,12 @@ function ProductSizeView({ currentUser }) {
                     }}
                     className="w-full rounded-xl border border-[#E8DEC9] bg-[#FCFBF8] p-2.5 text-xs text-[#121214] focus:border-[#C59A46] focus:outline-none"
                   >
-                    <option value="General">General / All Categories (Universal)</option>
-                    {categories.length > 0 && (
-                      <optgroup label="Categories from Database">
-                        {categories.map((cat) => (
-                          <option key={cat._id} value={cat._id}>
-                            {cat.name} {cat.productType?.name ? `(${cat.productType.name})` : ''}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    <optgroup label="Standard Classification">
-                      <option value="Topwear">Topwear (Shirts, Tees, Hoodies)</option>
-                      <option value="Bottomwear">Bottomwear (Cargos, Denim, Trousers)</option>
-                      <option value="Packs & Sets">Packs & Sets</option>
-                      <option value="Accessories">Accessories</option>
-                    </optgroup>
+                    <option value="">None / General</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name} {cat.productType?.name ? `(${cat.productType.name})` : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
