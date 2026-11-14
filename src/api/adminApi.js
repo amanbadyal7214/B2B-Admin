@@ -188,6 +188,39 @@ export const toggleFitStatusApi = async (id) => {
 }
 
 /**
+ * Product Fabric & GSM APIs
+ */
+export const getFabricsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/fabrics', { params })
+  return response.data
+}
+
+export const getFabricByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/fabrics/${id}`)
+  return response.data
+}
+
+export const createFabricApi = async (fabricData) => {
+  const response = await axiosInstance.post('/api/fabrics', fabricData)
+  return response.data
+}
+
+export const updateFabricApi = async (id, fabricData) => {
+  const response = await axiosInstance.put(`/api/fabrics/${id}`, fabricData)
+  return response.data
+}
+
+export const deleteFabricApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/fabrics/${id}`)
+  return response.data
+}
+
+export const toggleFabricStatusApi = async (id) => {
+  const response = await axiosInstance.patch(`/api/fabrics/${id}/status`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

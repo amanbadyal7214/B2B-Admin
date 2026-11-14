@@ -23,6 +23,7 @@ export default function AdminSidebar({
     currentPath.includes('/product-size') ||
     currentPath.includes('/product-color') ||
     currentPath.includes('/product-fit') ||
+    currentPath.includes('/product-fabric') ||
     currentPath.includes('/product')
 
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
@@ -260,6 +261,32 @@ export default function AdminSidebar({
                     <span>Product Fits</span>
                   </div>
                   {(currentPath === '/dashboard/product-fit' || currentPath === '/dashboard/product-fits') && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* Product Fabrics & GSM */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-fabric')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    currentPath === '/dashboard/product-fabric' || currentPath === '/dashboard/product-fabrics'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                    <span>Product Fabrics &amp; GSM</span>
+                  </div>
+                  {(currentPath === '/dashboard/product-fabric' || currentPath === '/dashboard/product-fabrics') && (
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
                 </button>
