@@ -20,6 +20,7 @@ export default function AdminSidebar({
   const isProductPath =
     currentPath.includes('/product-category') ||
     currentPath.includes('/product-type') ||
+    currentPath.includes('/product-size') ||
     currentPath.includes('/product')
 
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
@@ -179,6 +180,32 @@ export default function AdminSidebar({
                     <span>Product Category</span>
                   </div>
                   {currentPath === '/dashboard/product-category' && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* Product Sizes */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-size')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    currentPath === '/dashboard/product-size' || currentPath === '/dashboard/product-sizes'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span>Product Sizes</span>
+                  </div>
+                  {(currentPath === '/dashboard/product-size' || currentPath === '/dashboard/product-sizes') && (
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
                 </button>

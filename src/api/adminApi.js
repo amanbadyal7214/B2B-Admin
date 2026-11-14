@@ -94,6 +94,39 @@ export const deleteProductTypeApi = async (id) => {
 }
 
 /**
+ * Product Size APIs
+ */
+export const getSizesApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/sizes', { params })
+  return response.data
+}
+
+export const getSizeByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/sizes/${id}`)
+  return response.data
+}
+
+export const createSizeApi = async (sizeData) => {
+  const response = await axiosInstance.post('/api/sizes', sizeData)
+  return response.data
+}
+
+export const updateSizeApi = async (id, sizeData) => {
+  const response = await axiosInstance.put(`/api/sizes/${id}`, sizeData)
+  return response.data
+}
+
+export const deleteSizeApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/sizes/${id}`)
+  return response.data
+}
+
+export const seedSizesApi = async () => {
+  const response = await axiosInstance.post('/api/sizes/seed')
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
