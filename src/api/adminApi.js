@@ -221,6 +221,39 @@ export const toggleFabricStatusApi = async (id) => {
 }
 
 /**
+ * Product MOQ & Pack Type APIs
+ */
+export const getMoqsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/moq-types', { params })
+  return response.data
+}
+
+export const getMoqByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/moq-types/${id}`)
+  return response.data
+}
+
+export const createMoqApi = async (moqData) => {
+  const response = await axiosInstance.post('/api/moq-types', moqData)
+  return response.data
+}
+
+export const updateMoqApi = async (id, moqData) => {
+  const response = await axiosInstance.put(`/api/moq-types/${id}`, moqData)
+  return response.data
+}
+
+export const deleteMoqApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/moq-types/${id}`)
+  return response.data
+}
+
+export const toggleMoqStatusApi = async (id) => {
+  const response = await axiosInstance.patch(`/api/moq-types/${id}/status`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

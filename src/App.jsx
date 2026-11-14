@@ -10,6 +10,7 @@ import ProductSizeView from './components/ProductSizeView'
 import ProductColorView from './components/ProductColorView'
 import ProductFitView from './components/ProductFitView'
 import ProductFabricView from './components/ProductFabricView'
+import ProductMoqView from './components/ProductMoqView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -263,6 +264,24 @@ function App() {
                     <Route
                       path="product/fabrics"
                       element={<ProductFabricView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/product-moq -> Product MOQ & Pack Types Management */}
+                    <Route
+                      path="product-moq"
+                      element={<ProductMoqView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product-moqs"
+                      element={<ProductMoqView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/moq"
+                      element={<ProductMoqView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/moqs"
+                      element={<ProductMoqView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

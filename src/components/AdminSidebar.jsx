@@ -24,6 +24,7 @@ export default function AdminSidebar({
     currentPath.includes('/product-color') ||
     currentPath.includes('/product-fit') ||
     currentPath.includes('/product-fabric') ||
+    currentPath.includes('/product-moq') ||
     currentPath.includes('/product')
 
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
@@ -287,6 +288,32 @@ export default function AdminSidebar({
                     <span>Product Fabrics &amp; GSM</span>
                   </div>
                   {(currentPath === '/dashboard/product-fabric' || currentPath === '/dashboard/product-fabrics') && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* Product MOQ & Packs */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-moq')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    currentPath === '/dashboard/product-moq' || currentPath === '/dashboard/product-moqs'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                    <span>Product MOQ &amp; Packs</span>
+                  </div>
+                  {(currentPath === '/dashboard/product-moq' || currentPath === '/dashboard/product-moqs') && (
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
                 </button>
