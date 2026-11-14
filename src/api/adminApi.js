@@ -155,6 +155,39 @@ export const toggleColorStatusApi = async (id) => {
 }
 
 /**
+ * Product Fit APIs
+ */
+export const getFitsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/fits', { params })
+  return response.data
+}
+
+export const getFitByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/fits/${id}`)
+  return response.data
+}
+
+export const createFitApi = async (fitData) => {
+  const response = await axiosInstance.post('/api/fits', fitData)
+  return response.data
+}
+
+export const updateFitApi = async (id, fitData) => {
+  const response = await axiosInstance.put(`/api/fits/${id}`, fitData)
+  return response.data
+}
+
+export const deleteFitApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/fits/${id}`)
+  return response.data
+}
+
+export const toggleFitStatusApi = async (id) => {
+  const response = await axiosInstance.patch(`/api/fits/${id}/status`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

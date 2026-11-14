@@ -22,6 +22,7 @@ export default function AdminSidebar({
     currentPath.includes('/product-type') ||
     currentPath.includes('/product-size') ||
     currentPath.includes('/product-color') ||
+    currentPath.includes('/product-fit') ||
     currentPath.includes('/product')
 
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
@@ -233,6 +234,32 @@ export default function AdminSidebar({
                     <span>Product Colours</span>
                   </div>
                   {(currentPath === '/dashboard/product-color' || currentPath === '/dashboard/product-colors') && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* Product Fits */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/product-fit')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    currentPath === '/dashboard/product-fit' || currentPath === '/dashboard/product-fits'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M4 6h16M4 12h16m-7 6h7"
+                      />
+                    </svg>
+                    <span>Product Fits</span>
+                  </div>
+                  {(currentPath === '/dashboard/product-fit' || currentPath === '/dashboard/product-fits') && (
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
                 </button>
