@@ -18,6 +18,7 @@ export default function AdminSidebar({
     currentPath.includes('/audit-logs')
 
   const isProductPath =
+    currentPath.includes('/products') ||
     currentPath.includes('/product-category') ||
     currentPath.includes('/product-type') ||
     currentPath.includes('/product-size') ||
@@ -137,6 +138,32 @@ export default function AdminSidebar({
             {/* Dropdown Items */}
             {isProductDropdownOpen && (
               <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
+                {/* All Wholesale Products */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/products')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
+                    currentPath === '/dashboard/products' || currentPath === '/dashboard/product' || currentPath === '/dashboard/product-list'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      />
+                    </svg>
+                    <span>All Products</span>
+                  </div>
+                  {(currentPath === '/dashboard/products' || currentPath === '/dashboard/product' || currentPath === '/dashboard/product-list') && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
                 {/* Product Type */}
                 <button
                   type="button"

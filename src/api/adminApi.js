@@ -254,6 +254,45 @@ export const toggleMoqStatusApi = async (id) => {
 }
 
 /**
+ * Wholesale Product Catalog APIs
+ */
+export const getProductsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/products', { params })
+  return response.data
+}
+
+export const getProductByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/products/${encodeURIComponent(id)}`)
+  return response.data
+}
+
+export const createProductApi = async (productData) => {
+  const isFormData = typeof FormData !== 'undefined' && productData instanceof FormData
+  const response = await axiosInstance.post('/api/products', productData, {
+    headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  })
+  return response.data
+}
+
+export const updateProductApi = async (id, productData) => {
+  const isFormData = typeof FormData !== 'undefined' && productData instanceof FormData
+  const response = await axiosInstance.put(`/api/products/${encodeURIComponent(id)}`, productData, {
+    headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  })
+  return response.data
+}
+
+export const deleteProductApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/products/${encodeURIComponent(id)}`)
+  return response.data
+}
+
+export const seedProductsApi = async (data = {}) => {
+  const response = await axiosInstance.post('/api/products/seed', data)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

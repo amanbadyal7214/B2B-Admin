@@ -11,6 +11,7 @@ import ProductColorView from './components/ProductColorView'
 import ProductFitView from './components/ProductFitView'
 import ProductFabricView from './components/ProductFabricView'
 import ProductMoqView from './components/ProductMoqView'
+import ProductManagementView from './components/ProductManagementView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -173,6 +174,24 @@ function App() {
                   <Routes>
                     {/* /dashboard -> Overview */}
                     <Route index element={<AdminDashboardPreview user={currentUser} />} />
+
+                    {/* /dashboard/products -> Wholesale Products & Variants Management */}
+                    <Route
+                      path="products"
+                      element={<ProductManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product"
+                      element={<ProductManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product-list"
+                      element={<ProductManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="all-products"
+                      element={<ProductManagementView currentUser={currentUser} />}
+                    />
 
                     {/* /dashboard/product-category -> Product Categories Management */}
                     <Route
