@@ -1,7 +1,17 @@
 import axios from 'axios'
 
-// Determine base API URL with fallback
-const BASE_URL = import.meta.env.API_BASE_URL || 'https://b2b-back.onrender.com'
+// Determine base API URL with robust fallback:
+// Priority: VITE_API_BASE_URL -> API_BASE_URL -> (dev: http://localhost:5000 | prod: https://b2b-back.onrender.com)
+const RAW_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.API_BASE_URL ||
+  (import.meta.env.DEV ? 'http://localhost:5000' : 'https://b2b-back.onrender.com')
+
+const BASE_URL = RAW_URL.replace(/\/+$/, '')
+
+if (import.meta.env.DEV) {
+  console.log(`[BVB Admin API] Connecting to backend: ${BASE_URL}`)
+}
 
 /**
  * Enterprise Axios Instance for BVB Admin Portal
