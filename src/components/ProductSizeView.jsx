@@ -4,6 +4,7 @@ import {
   createSizeApi,
   updateSizeApi,
   deleteSizeApi,
+  seedSizesApi,
   getCategoriesApi,
   getProductTypesApi,
 } from '../api'
@@ -195,6 +196,60 @@ function ProductSizeView({ currentUser }) {
     }
   }
 
+  // Seed default atelier sizing taxonomy (XS-3XL, 28-38 waist, FreeSize)
+  const handleSeedDefaults = async () => {
+    setIsSubmitting(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+    try {
+      // First attempt dedicated backend size seed endpoint
+      try {
+        const res = await seedSizesApi()
+        if (res && res.success) {
+          setSuccessMessage(res.message || 'Standard sizes seeded successfully!')
+          await fetchInitialData()
+          return
+        }
+      } catch (apiErr) {
+        console.warn('Backend seed endpoint fallback to client-side seeding:', apiErr)
+      }
+
+      // Client-side fallback if backend seed route is unavailable
+      const defaultSizes = [
+        { name: 'XS', code: 'SZ-XS', system: 'Alpha', categoryType: 'Tops', chest: '36"', waist: '30"', length: '27"', sortOrder: 1, description: 'Extra Small • 36" Chest', status: 'Active' },
+        { name: 'S', code: 'SZ-S', system: 'Alpha', categoryType: 'Tops', chest: '38"', waist: '32"', length: '28"', sortOrder: 2, description: 'Small • 38" Chest', status: 'Active' },
+        { name: 'M', code: 'SZ-M', system: 'Alpha', categoryType: 'Tops', chest: '40"', waist: '34"', length: '29"', sortOrder: 3, description: 'Medium • 40" Chest', status: 'Active' },
+        { name: 'L', code: 'SZ-L', system: 'Alpha', categoryType: 'Tops', chest: '42"', waist: '36"', length: '30"', sortOrder: 4, description: 'Large • 42" Chest', status: 'Active' },
+        { name: 'XL', code: 'SZ-XL', system: 'Alpha', categoryType: 'Tops', chest: '44"', waist: '38"', length: '31"', sortOrder: 5, description: 'Extra Large • 44" Chest', status: 'Active' },
+        { name: 'XXL', code: 'SZ-XXL', system: 'Alpha', categoryType: 'Tops', chest: '46"', waist: '40"', length: '32"', sortOrder: 6, description: 'Double Extra Large • 46" Chest', status: 'Active' },
+        { name: '3XL', code: 'SZ-3XL', system: 'Alpha', categoryType: 'Tops', chest: '48"', waist: '42"', length: '33"', sortOrder: 7, description: 'Triple Extra Large • 48" Chest', status: 'Active' },
+        { name: '28', code: 'SZ-28', system: 'Numeric', categoryType: 'Bottoms', chest: '', waist: '28"', length: '32"', sortOrder: 8, description: '28" Waist • Standard Inseam', status: 'Active' },
+        { name: '30', code: 'SZ-30', system: 'Numeric', categoryType: 'Bottoms', chest: '', waist: '30"', length: '32"', sortOrder: 9, description: '30" Waist • Standard Inseam', status: 'Active' },
+        { name: '32', code: 'SZ-32', system: 'Numeric', categoryType: 'Bottoms', chest: '', waist: '32"', length: '32"', sortOrder: 10, description: '32" Waist • Standard Inseam', status: 'Active' },
+        { name: '34', code: 'SZ-34', system: 'Numeric', categoryType: 'Bottoms', chest: '', waist: '34"', length: '32"', sortOrder: 11, description: '34" Waist • Standard Inseam', status: 'Active' },
+        { name: '36', code: 'SZ-36', system: 'Numeric', categoryType: 'Bottoms', chest: '', waist: '36"', length: '32"', sortOrder: 12, description: '36" Waist • Standard Inseam', status: 'Active' },
+        { name: '38', code: 'SZ-38', system: 'Numeric', categoryType: 'Bottoms', chest: '', waist: '38"', length: '32"', sortOrder: 13, description: '38" Waist • Standard Inseam', status: 'Active' },
+        { name: 'FreeSize', code: 'SZ-FREE', system: 'FreeSize', categoryType: 'General', chest: 'Standard', waist: 'Standard', length: 'Standard', sortOrder: 14, description: 'One Size Fits All', status: 'Active' },
+      ]
+
+      for (const item of defaultSizes) {
+        try {
+          await createSizeApi(item)
+        } catch {
+          // Ignore duplicate conflicts
+        }
+      }
+
+      setSuccessMessage('Standard sizes (XS–3XL, 28–38) seeded successfully!')
+      await fetchInitialData()
+    } catch (err) {
+      console.error('Seed standard sizes error:', err)
+      setErrorMessage(err.response?.data?.message || 'Could not seed standard sizes: ' + err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   // Filtered sizes list
   const filteredSizes = useMemo(() => {
     return sizes.filter((s) => {
@@ -248,6 +303,20 @@ function ProductSizeView({ currentUser }) {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5">
+          {sizes.length === 0 && (
+            <button
+              type="button"
+              onClick={handleSeedDefaults}
+              disabled={isSubmitting}
+              className="flex items-center gap-1.5 rounded-xl border border-[#DFD5C2] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#6B6357] transition-all hover:border-[#C59A46] hover:text-[#9A6D22] shadow-2xs disabled:opacity-50 cursor-pointer"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              <span>{isSubmitting ? 'Seeding...' : 'Seed Defaults'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleOpenAddModal}
@@ -413,9 +482,10 @@ function ProductSizeView({ currentUser }) {
               <button
                 type="button"
                 onClick={handleSeedDefaults}
-                className="rounded-xl bg-[#C59A46] px-4 py-2 text-xs font-bold text-[#121214] hover:bg-[#B38734] transition-all cursor-pointer"
+                disabled={isSubmitting}
+                className="rounded-xl bg-[#C59A46] px-4 py-2 text-xs font-bold text-[#121214] hover:bg-[#B38734] transition-all cursor-pointer disabled:opacity-50"
               >
-                Seed Standard Sizes (1-Click)
+                {isSubmitting ? 'Seeding Standard Sizes...' : 'Seed Standard Sizes (1-Click)'}
               </button>
               <button
                 type="button"

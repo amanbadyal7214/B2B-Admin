@@ -121,6 +121,11 @@ export const deleteSizeApi = async (id) => {
   return response.data
 }
 
+export const seedSizesApi = async () => {
+  const response = await axiosInstance.post('/api/sizes/seed')
+  return response.data
+}
+
 /**
  * Product Color APIs
  */
