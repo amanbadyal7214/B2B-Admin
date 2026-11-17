@@ -28,6 +28,8 @@ export default function AdminSidebar({
     currentPath.includes('/product-moq') ||
     currentPath.includes('/product')
 
+  const isPincodePath = currentPath.includes('/pincode')
+
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
   const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(true)
 
@@ -348,6 +350,42 @@ export default function AdminSidebar({
                 
               </div>
             )}
+          </div>
+
+          {/* Delivery & Serviceable Pincodes */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => handleNav('/dashboard/pincodes')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                isPincodePath
+                  ? 'bg-[#FAF3E4] border border-[#E5D3AF] text-[#121214] shadow-2xs'
+                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={isPincodePath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </span>
+                <span className="tracking-wide text-xs">Delivery Pincodes</span>
+              </div>
+              {isPincodePath && (
+                <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+              )}
+            </button>
           </div>
 
           {/* 3. Administrator Dropdown Menu */}

@@ -12,6 +12,7 @@ import ProductFitView from './components/ProductFitView'
 import ProductFabricView from './components/ProductFabricView'
 import ProductMoqView from './components/ProductMoqView'
 import ProductManagementView from './components/ProductManagementView'
+import ServiceablePincodesView from './components/ServiceablePincodesView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -301,6 +302,20 @@ function App() {
                     <Route
                       path="product/moqs"
                       element={<ProductMoqView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/pincodes -> Logistics & Serviceable Delivery Pincodes */}
+                    <Route
+                      path="pincodes"
+                      element={<ServiceablePincodesView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="pincode"
+                      element={<ServiceablePincodesView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="delivery-pincodes"
+                      element={<ServiceablePincodesView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

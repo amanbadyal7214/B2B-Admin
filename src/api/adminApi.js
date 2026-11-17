@@ -298,6 +298,49 @@ export const seedProductsApi = async (data = {}) => {
 }
 
 /**
+ * Serviceable Pincodes & Delivery Network APIs
+ */
+export const getPincodesApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/pincodes', { params })
+  return response.data
+}
+
+export const createPincodeApi = async (pincodeData) => {
+  const response = await axiosInstance.post('/api/pincodes', pincodeData)
+  return response.data
+}
+
+export const bulkCreatePincodesApi = async (bulkData) => {
+  const response = await axiosInstance.post('/api/pincodes/bulk', bulkData)
+  return response.data
+}
+
+export const updatePincodeApi = async (id, pincodeData) => {
+  const response = await axiosInstance.put(`/api/pincodes/${encodeURIComponent(id)}`, pincodeData)
+  return response.data
+}
+
+export const togglePincodeStatusApi = async (id) => {
+  const response = await axiosInstance.patch(`/api/pincodes/${encodeURIComponent(id)}/toggle`)
+  return response.data
+}
+
+export const deletePincodeApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/pincodes/${encodeURIComponent(id)}`)
+  return response.data
+}
+
+export const checkPincodeApi = async (pincode) => {
+  const response = await axiosInstance.get(`/api/pincodes/check/${encodeURIComponent(pincode)}`)
+  return response.data
+}
+
+export const seedPincodesApi = async () => {
+  const response = await axiosInstance.post('/api/pincodes/seed')
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
