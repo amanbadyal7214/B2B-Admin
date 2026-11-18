@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   getInventoryListApi,
   getLowStockAlertsApi,
@@ -49,7 +50,33 @@ const STATUS_BADGE = {
 }
 
 export default function AdminInventoryView() {
-  const [activeTab, setActiveTab] = useState('stock')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialTab = searchParams.get('tab') || 'stock'
+  const [activeTab, setActiveTab] = useState(
+    ['stock', 'inward', 'alerts', 'locks', 'adjust_return', 'movements', 'warehouses'].includes(initialTab)
+      ? initialTab
+      : 'stock'
+  )
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam && ['stock', 'inward', 'alerts', 'locks', 'adjust_return', 'movements', 'warehouses'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    } else if (!tabParam) {
+      setActiveTab('stock')
+    }
+  }, [searchParams])
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId)
+    const nextParams = new URLSearchParams(searchParams)
+    if (tabId === 'stock') {
+      nextParams.delete('tab')
+    } else {
+      nextParams.set('tab', tabId)
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
 
   // Core Inventory List State
   const [items, setItems] = useState([])
@@ -474,7 +501,7 @@ export default function AdminInventoryView() {
       reorderLevel: item.reorderLevel ?? 10,
       reason: 'Low stock replenishment',
     })
-    setActiveTab('inward')
+    handleTabChange('inward')
   }
 
   const openQuickAdjust = (item) => {
@@ -485,13 +512,13 @@ export default function AdminInventoryView() {
       qty: item.onHand,
       reason: '',
     })
-    setActiveTab('adjust_return')
+    handleTabChange('adjust_return')
   }
 
   const openSkuAuditHistory = (skuId) => {
     setMovementSkuSearch(skuId)
     setMovementTypeFilter('ALL')
-    setActiveTab('movements')
+    handleTabChange('movements')
   }
 
   const formatDateTime = (dt) => {
@@ -535,7 +562,7 @@ export default function AdminInventoryView() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('inward')}
+            onClick={() => handleTabChange('inward')}
             className="inline-flex items-center gap-2 rounded-xl bg-[#121214] px-4 py-2 text-xs font-semibold text-[#FAD79F] shadow-xs transition-all hover:bg-[#232328] cursor-pointer"
           >
             <span>+ Stock Inward</span>
@@ -585,7 +612,7 @@ export default function AdminInventoryView() {
 
         <button
           type="button"
-          onClick={() => setActiveTab('alerts')}
+          onClick={() => handleTabChange('alerts')}
           className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-left shadow-2xs transition-all hover:border-amber-400 cursor-pointer"
         >
           <p className="font-mono text-[10px] uppercase tracking-wider text-amber-800">Low / OOS Alerts</p>
@@ -610,7 +637,7 @@ export default function AdminInventoryView() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 isActive
                   ? 'bg-[#121214] text-[#FAD79F] shadow-xs'

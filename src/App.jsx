@@ -15,6 +15,7 @@ import ProductManagementView from './components/ProductManagementView'
 import ServiceablePincodesView from './components/ServiceablePincodesView'
 import AdminOrdersView from './components/AdminOrdersView'
 import AdminInventoryView from './components/AdminInventoryView'
+import AdminRetailersView from './components/AdminRetailersView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -208,6 +209,28 @@ function App() {
                     <Route
                       path="warehouses"
                       element={<AdminInventoryView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/customer & retailers -> B2B Retailers, Trade Pass & Commercial Slabs */}
+                    <Route
+                      path="customer"
+                      element={<AdminRetailersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="customers"
+                      element={<AdminRetailersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="retailers"
+                      element={<AdminRetailersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="retailer"
+                      element={<AdminRetailersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="trade-pass"
+                      element={<AdminRetailersView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/products -> Wholesale Products & Variants Management */}

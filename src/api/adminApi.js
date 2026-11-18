@@ -473,6 +473,39 @@ export const deleteWarehouseApi = async (id) => {
 }
 
 /**
+ * Retailer Management APIs
+ */
+export const getAdminRetailersApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/retailers', { params })
+  return response.data
+}
+
+export const getAdminRetailerByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/retailers/${encodeURIComponent(id)}`)
+  return response.data
+}
+
+export const updateRetailerStatusApi = async (id, payload) => {
+  const response = await axiosInstance.patch(`/api/retailers/${encodeURIComponent(id)}/status`, payload)
+  return response.data
+}
+
+export const verifyRetailerApi = async (id, payload) => {
+  const response = await axiosInstance.patch(`/api/retailers/${encodeURIComponent(id)}/verify`, payload)
+  return response.data
+}
+
+export const updateRetailerSampleKitApi = async (id, payload) => {
+  const response = await axiosInstance.patch(`/api/retailers/${encodeURIComponent(id)}/sample-kit`, payload)
+  return response.data
+}
+
+export const deleteRetailerApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/retailers/${encodeURIComponent(id)}`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
