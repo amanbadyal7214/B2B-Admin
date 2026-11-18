@@ -358,6 +358,120 @@ export const updateAdminOrderStatusApi = async (orderId, updateData) => {
   return response.data
 }
 
+export const partialCancelOrderItemApi = async (orderId, payload) => {
+  const response = await axiosInstance.post(
+    `/api/orders/admin/${encodeURIComponent(orderId)}/partial-cancel`,
+    payload
+  )
+  return response.data
+}
+
+export const processOrderReturnApi = async (orderId, payload) => {
+  const response = await axiosInstance.post(
+    `/api/orders/admin/${encodeURIComponent(orderId)}/return`,
+    payload
+  )
+  return response.data
+}
+
+/**
+ * SKU Inventory Management, Stock Locks, Audit Movements & Multi-Warehouse APIs
+ */
+export const getInventoryListApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/inventory', { params })
+  return response.data
+}
+
+export const getSkuInventoryDetailApi = async (skuId) => {
+  const response = await axiosInstance.get(`/api/inventory/sku/${encodeURIComponent(skuId)}`)
+  return response.data
+}
+
+export const getLowStockAlertsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/inventory/alerts/low-stock', { params })
+  return response.data
+}
+
+export const getStockMovementsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/inventory/movements', { params })
+  return response.data
+}
+
+export const getStockLocksApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/inventory/locks', { params })
+  return response.data
+}
+
+export const releaseExpiredLocksApi = async () => {
+  const response = await axiosInstance.post('/api/inventory/locks/release-expired')
+  return response.data
+}
+
+export const singleStockInwardApi = async (payload) => {
+  const response = await axiosInstance.post('/api/inventory/inward', payload)
+  return response.data
+}
+
+export const bulkStockInwardApi = async (formDataOrPayload) => {
+  const isFormData = typeof FormData !== 'undefined' && formDataOrPayload instanceof FormData
+  const response = await axiosInstance.post('/api/inventory/inward/bulk', formDataOrPayload, {
+    headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  })
+  return response.data
+}
+
+export const downloadInwardTemplateApi = async () => {
+  const response = await axiosInstance.get('/api/inventory/inward/template', {
+    responseType: 'blob',
+  })
+  return response.data
+}
+
+export const adjustStockApi = async (payload) => {
+  const response = await axiosInstance.post('/api/inventory/adjust', payload)
+  return response.data
+}
+
+export const updateReorderLevelApi = async (inventoryId, payload) => {
+  const response = await axiosInstance.patch(`/api/inventory/${encodeURIComponent(inventoryId)}/reorder-level`, payload)
+  return response.data
+}
+
+export const processInventoryReturnApi = async (payload) => {
+  const response = await axiosInstance.post('/api/inventory/return', payload)
+  return response.data
+}
+
+export const transferWarehouseStockApi = async (payload) => {
+  const response = await axiosInstance.post('/api/inventory/transfer', payload)
+  return response.data
+}
+
+export const syncCatalogInventoryApi = async () => {
+  const response = await axiosInstance.post('/api/inventory/sync-products')
+  return response.data
+}
+
+export const getWarehousesApi = async () => {
+  const response = await axiosInstance.get('/api/inventory/warehouses')
+  return response.data
+}
+
+export const createWarehouseApi = async (payload) => {
+  const response = await axiosInstance.post('/api/inventory/warehouses', payload)
+  return response.data
+}
+
+export const updateWarehouseApi = async (id, payload) => {
+  const response = await axiosInstance.put(`/api/inventory/warehouses/${encodeURIComponent(id)}`, payload)
+  return response.data
+}
+
+export const deleteWarehouseApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/inventory/warehouses/${encodeURIComponent(id)}`)
+  return response.data
+}
+
 /**
  * Administrative Session Logout helper
  */

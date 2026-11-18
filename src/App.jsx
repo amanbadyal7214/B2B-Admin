@@ -14,6 +14,7 @@ import ProductMoqView from './components/ProductMoqView'
 import ProductManagementView from './components/ProductManagementView'
 import ServiceablePincodesView from './components/ServiceablePincodesView'
 import AdminOrdersView from './components/AdminOrdersView'
+import AdminInventoryView from './components/AdminInventoryView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -193,6 +194,20 @@ function App() {
                     <Route
                       path="manifests"
                       element={<AdminOrdersView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/inventory -> SKU Inventory, Stock Locks, Inward & Multi-Warehouse */}
+                    <Route
+                      path="inventory"
+                      element={<AdminInventoryView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="stock"
+                      element={<AdminInventoryView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="warehouses"
+                      element={<AdminInventoryView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/products -> Wholesale Products & Variants Management */}
