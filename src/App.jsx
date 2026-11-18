@@ -13,6 +13,7 @@ import ProductFabricView from './components/ProductFabricView'
 import ProductMoqView from './components/ProductMoqView'
 import ProductManagementView from './components/ProductManagementView'
 import ServiceablePincodesView from './components/ServiceablePincodesView'
+import AdminOrdersView from './components/AdminOrdersView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -175,6 +176,24 @@ function App() {
                   <Routes>
                     {/* /dashboard -> Overview */}
                     <Route index element={<AdminDashboardPreview user={currentUser} />} />
+
+                    {/* /dashboard/orders -> Wholesale Orders & Dispatch Management */}
+                    <Route
+                      path="orders"
+                      element={<AdminOrdersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="order"
+                      element={<AdminOrdersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="wholesale-orders"
+                      element={<AdminOrdersView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="manifests"
+                      element={<AdminOrdersView currentUser={currentUser} />}
+                    />
 
                     {/* /dashboard/products -> Wholesale Products & Variants Management */}
                     <Route

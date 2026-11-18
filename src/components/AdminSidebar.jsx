@@ -30,6 +30,11 @@ export default function AdminSidebar({
 
   const isPincodePath = currentPath.includes('/pincode')
 
+  const isOrderPath =
+    currentPath.includes('/orders') ||
+    currentPath.includes('/order') ||
+    currentPath.includes('/wholesale-orders')
+
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
   const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(true)
 
@@ -95,6 +100,38 @@ export default function AdminSidebar({
             </div>
             {isOverview && (
               <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+            )}
+          </button>
+
+          {/* Wholesale Orders (/dashboard/orders) */}
+          <button
+            type="button"
+            onClick={() => handleNav('/dashboard/orders')}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              isOrderPath
+                ? 'bg-[#FAF3E4] border border-[#E5D3AF] text-[#121214] shadow-2xs'
+                : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className={isOrderPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
+              </span>
+              <span className="tracking-wide text-xs">Wholesale Orders</span>
+            </div>
+            {isOrderPath ? (
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+            ) : (
+              <span className="rounded-full bg-[#1F8F5A]/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#1F8F5A] border border-[#1F8F5A]/20">
+                Live
+              </span>
             )}
           </button>
 

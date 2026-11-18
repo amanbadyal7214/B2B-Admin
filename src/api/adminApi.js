@@ -341,6 +341,24 @@ export const seedPincodesApi = async () => {
 }
 
 /**
+ * Wholesale Orders Management APIs
+ */
+export const getAdminOrdersApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/orders/admin', { params })
+  return response.data
+}
+
+export const getAdminOrderByIdApi = async (orderId) => {
+  const response = await axiosInstance.get(`/api/orders/admin/${encodeURIComponent(orderId)}`)
+  return response.data
+}
+
+export const updateAdminOrderStatusApi = async (orderId, updateData) => {
+  const response = await axiosInstance.patch(`/api/orders/admin/${encodeURIComponent(orderId)}/status`, updateData)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
