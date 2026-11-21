@@ -66,6 +66,39 @@ export const deleteCategoryApi = async (id) => {
 }
 
 /**
+ * Featured Collections & Product Reels APIs
+ */
+export const getFeaturedCollectionsApi = async (params = { all: true }) => {
+  const response = await axiosInstance.get('/api/featured-collections', { params })
+  return response.data
+}
+
+export const getFeaturedCollectionByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/featured-collections/${id}`)
+  return response.data
+}
+
+export const createFeaturedCollectionApi = async (collectionData) => {
+  const response = await axiosInstance.post('/api/featured-collections', collectionData)
+  return response.data
+}
+
+export const updateFeaturedCollectionApi = async (id, collectionData) => {
+  const response = await axiosInstance.put(`/api/featured-collections/${id}`, collectionData)
+  return response.data
+}
+
+export const deleteFeaturedCollectionApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/featured-collections/${id}`)
+  return response.data
+}
+
+export const seedFeaturedCollectionsApi = async (reset = false) => {
+  const response = await axiosInstance.post('/api/featured-collections/seed', { reset })
+  return response.data
+}
+
+/**
  * Product Type APIs
  */
 export const getProductTypesApi = async (params = {}) => {

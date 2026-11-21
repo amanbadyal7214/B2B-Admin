@@ -20,6 +20,9 @@ export default function AdminSidebar({
   const isProductPath =
     currentPath.includes('/products') ||
     currentPath.includes('/product-category') ||
+    currentPath.includes('/featured-collections') ||
+    currentPath.includes('/featured-collection') ||
+    currentPath.includes('/collections') ||
     currentPath.includes('/product-type') ||
     currentPath.includes('/product-size') ||
     currentPath.includes('/product-color') ||
@@ -29,6 +32,11 @@ export default function AdminSidebar({
     currentPath.includes('/product')
 
   const isPincodePath = currentPath.includes('/pincode')
+
+  const isFeaturedCollectionPath =
+    currentPath.includes('/featured-collections') ||
+    currentPath.includes('/featured-collection') ||
+    currentPath.includes('/collections')
 
   const isOrderPath =
     currentPath.includes('/orders') ||
@@ -193,6 +201,39 @@ export default function AdminSidebar({
                 Live
               </span>
             )}
+          </button>
+
+          {/* Featured Collections & Product Reels (/dashboard/featured-collections) */}
+          <button
+            type="button"
+            onClick={() => handleNav('/dashboard/featured-collections')}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all cursor-pointer ${
+              isFeaturedCollectionPath
+                ? 'bg-[#FAF3E4] border border-[#E5D3AF] text-[#121214] shadow-2xs'
+                : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className={isFeaturedCollectionPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
+                  />
+                </svg>
+              </span>
+              <span className="tracking-wide text-xs">Featured Collections</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-full bg-[#FAF3E4] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#9A6D22] border border-[#E7D6B6]">
+                Reels
+              </span>
+              {isFeaturedCollectionPath && (
+                <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+              )}
+            </div>
           </button>
 
           {/* Inventory & Stock Dropdown Menu */}
@@ -628,6 +669,41 @@ export default function AdminSidebar({
                   {(currentPath === '/dashboard/products' || currentPath === '/dashboard/product' || currentPath === '/dashboard/product-list') && (
                     <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
                   )}
+                </button>
+
+                {/* Featured Collections & Product Reels */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/featured-collections')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    currentPath === '/dashboard/featured-collections' ||
+                    currentPath === '/dashboard/featured-collection' ||
+                    currentPath === '/dashboard/collections'
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                    <span>Featured Collections</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded-full bg-[#FAF3E4] px-1 py-0.2 text-[8px] font-mono font-bold text-[#9A6D22] border border-[#E7D6B6]">
+                      Reels
+                    </span>
+                    {(currentPath === '/dashboard/featured-collections' ||
+                      currentPath === '/dashboard/featured-collection' ||
+                      currentPath === '/dashboard/collections') && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                    )}
+                  </div>
                 </button>
 
                 {/* Product Type */}

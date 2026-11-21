@@ -16,6 +16,7 @@ import ServiceablePincodesView from './components/ServiceablePincodesView'
 import AdminOrdersView from './components/AdminOrdersView'
 import AdminInventoryView from './components/AdminInventoryView'
 import AdminRetailersView from './components/AdminRetailersView'
+import FeaturedCollectionsView from './components/FeaturedCollectionsView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -249,6 +250,24 @@ function App() {
                     <Route
                       path="all-products"
                       element={<ProductManagementView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/featured-collections -> Featured Collections & Product Reels */}
+                    <Route
+                      path="featured-collections"
+                      element={<FeaturedCollectionsView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="featured-collection"
+                      element={<FeaturedCollectionsView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="collections"
+                      element={<FeaturedCollectionsView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="product/featured-collections"
+                      element={<FeaturedCollectionsView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/product-category -> Product Categories Management */}
