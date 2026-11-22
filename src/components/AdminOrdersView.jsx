@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import {
   getAdminOrdersApi,
   updateAdminOrderStatusApi,
+  partialCancelOrderItemApi,
+  processOrderReturnApi,
 } from '../api'
 
 const STATUS_CONFIG = {
@@ -11,7 +13,9 @@ const STATUS_CONFIG = {
   delivered: { label: 'Delivered', bg: 'bg-[#1F8F5A]/15', border: 'border-[#1F8F5A]/40', text: 'text-[#14603B]', dot: 'bg-[#1F8F5A]' },
   pending: { label: 'Pending (Stock Locked)', bg: 'bg-[#FAF3E4]', border: 'border-[#E5D3AF]', text: 'text-[#805915]', dot: 'bg-[#C59A46]' },
   payment_pending: { label: 'Payment Pending', bg: 'bg-[#FAF3E4]', border: 'border-[#E5D3AF]', text: 'text-[#805915]', dot: 'bg-[#C59A46]' },
+  partially_cancelled: { label: 'Partially Cancelled', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-800', dot: 'bg-amber-600' },
   cancelled: { label: 'Cancelled', bg: 'bg-[#C23B37]/10', border: 'border-[#C23B37]/30', text: 'text-[#C23B37]', dot: 'bg-[#C23B37]' },
+  returned: { label: 'Returned', bg: 'bg-teal-50', border: 'border-teal-300', text: 'text-teal-800', dot: 'bg-teal-600' },
   expired: { label: 'Expired (Lock Released)', bg: 'bg-[#EAEAEA]', border: 'border-[#D0D0D0]', text: 'text-[#707070]', dot: 'bg-[#808080]' },
   failed: { label: 'Failed', bg: 'bg-[#C23B37]/10', border: 'border-[#C23B37]/30', text: 'text-[#C23B37]', dot: 'bg-[#C23B37]' },
 }
@@ -100,6 +104,76 @@ export default function AdminOrdersView() {
   }
 
   // Quick Status change directly from row or detail drawer
+  const handlePartialCancelItem = async (order, item) => {
+    const remaining = Math.max(0, item.quantity - (item.cancelledQty || 0))
+    if (remaining <= 0) return
+    const qtyStr = window.prompt(
+      `Partial cancel SKU ${item.skuId} (${item.size}). Enter qty to cancel (max ${remaining}):`,
+      String(remaining)
+    )
+    if (!qtyStr) return
+    const qty = parseInt(qtyStr, 10)
+    if (isNaN(qty) || qty <= 0 || qty > remaining) {
+      setErrorMessage(`Please enter a valid qty between 1 and ${remaining}.`)
+      return
+    }
+    const reason = window.prompt('Reason for partial cancellation:', 'Retailer requested SKU cancellation') || 'Partial cancellation'
+    try {
+      setIsUpdatingStatus(true)
+      const res = await partialCancelOrderItemApi(order._id, { skuId: item.skuId, qty, reason })
+      if (res?.success && res.order) {
+        setSuccessMessage(res.message)
+        setSelectedOrder(res.order)
+        fetchOrders()
+      }
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || err.message)
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
+
+  const handleReturnItem = async (order, item, qcStatus) => {
+    const remaining = Math.max(
+      0,
+      item.quantity - (item.cancelledQty || 0) - (item.returnedQty || 0) - (item.damagedQty || 0)
+    )
+    if (remaining <= 0) return
+    const qtyStr = window.prompt(
+      `Return QC ${qcStatus} for ${item.skuId}. Enter qty (max ${remaining}):`,
+      String(remaining)
+    )
+    if (!qtyStr) return
+    const qty = parseInt(qtyStr, 10)
+    if (isNaN(qty) || qty <= 0 || qty > remaining) {
+      setErrorMessage(`Please enter a valid qty between 1 and ${remaining}.`)
+      return
+    }
+    const reason =
+      window.prompt(
+        'QC Inspection Notes:',
+        qcStatus === 'PASS' ? 'Packaging & tags intact - restockable' : 'Damaged / failed QC inspection'
+      ) || `Return QC ${qcStatus}`
+    try {
+      setIsUpdatingStatus(true)
+      const res = await processOrderReturnApi(order._id, {
+        skuId: item.skuId,
+        qty,
+        qcStatus,
+        reason,
+      })
+      if (res?.success && res.order) {
+        setSuccessMessage(res.message)
+        setSelectedOrder(res.order)
+        fetchOrders()
+      }
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || err.message)
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
+
   const handleUpdateOrderStatus = async (orderId, newStatus, trackingNo = null) => {
     try {
       setIsUpdatingStatus(true)
@@ -659,27 +733,89 @@ export default function AdminOrdersView() {
                         <th className="p-3 text-center">Quantity</th>
                         <th className="p-3 text-right">Unit Rate</th>
                         <th className="p-3 text-right">Total</th>
+                        <th className="p-3 text-right">Stock Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#ECE4D5]/70">
-                      {selectedOrder.items?.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-[#FAF8F5]/40">
-                          <td className="p-3 font-semibold text-[#121214]">{item.productName}</td>
-                          <td className="p-3 font-mono text-[11px] text-[#7A746B]">{item.skuId}</td>
-                          <td className="p-3 text-[#635E56]">
-                            {item.color} · <span className="font-mono font-bold">{item.size}</span>
-                          </td>
-                          <td className="p-3 text-center font-mono font-bold text-[#121214]">
-                            {item.quantity} pcs
-                          </td>
-                          <td className="p-3 text-right font-mono text-[#635E56]">
-                            {formatPrice(item.unitPrice)}
-                          </td>
-                          <td className="p-3 text-right font-mono font-bold text-[#121214]">
-                            {formatPrice(item.totalPrice)}
-                          </td>
-                        </tr>
-                      ))}
+                      {selectedOrder.items?.map((item, idx) => {
+                        const activeRem = Math.max(
+                          0,
+                          item.quantity -
+                            (item.cancelledQty || 0) -
+                            (item.returnedQty || 0) -
+                            (item.damagedQty || 0)
+                        )
+                        const canPartialCancel =
+                          activeRem > 0 &&
+                          ['pending', 'payment_pending', 'paid', 'processing', 'partially_cancelled'].includes(
+                            selectedOrder.status
+                          )
+                        const canReturnQc =
+                          activeRem > 0 && ['dispatched', 'delivered'].includes(selectedOrder.status)
+
+                        return (
+                          <tr key={idx} className="hover:bg-[#FAF8F5]/40">
+                            <td className="p-3 font-semibold text-[#121214]">
+                              <div>{item.productName}</div>
+                              {(item.cancelledQty > 0 || item.returnedQty > 0 || item.damagedQty > 0) && (
+                                <div className="mt-0.5 font-mono text-[9.5px] text-amber-700">
+                                  {item.cancelledQty > 0 ? `Cancelled: ${item.cancelledQty} ` : ''}
+                                  {item.returnedQty > 0 ? `Restocked: ${item.returnedQty} ` : ''}
+                                  {item.damagedQty > 0 ? `Damaged: ${item.damagedQty}` : ''}
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-3 font-mono text-[11px] text-[#7A746B]">{item.skuId}</td>
+                            <td className="p-3 text-[#635E56]">
+                              {item.color} · <span className="font-mono font-bold">{item.size}</span>
+                            </td>
+                            <td className="p-3 text-center font-mono font-bold text-[#121214]">
+                              {item.quantity} pcs
+                            </td>
+                            <td className="p-3 text-right font-mono text-[#635E56]">
+                              {formatPrice(item.unitPrice)}
+                            </td>
+                            <td className="p-3 text-right font-mono font-bold text-[#121214]">
+                              {formatPrice(item.totalPrice)}
+                            </td>
+                            <td className="p-3 text-right whitespace-nowrap">
+                              {canPartialCancel && (
+                                <button
+                                  type="button"
+                                  disabled={isUpdatingStatus}
+                                  onClick={() => handlePartialCancelItem(selectedOrder, item)}
+                                  className="rounded border border-rose-200 bg-rose-50 px-2 py-1 font-mono text-[9.5px] font-semibold text-rose-700 hover:bg-rose-100 cursor-pointer"
+                                >
+                                  Cancel SKU
+                                </button>
+                              )}
+                              {canReturnQc && (
+                                <div className="inline-flex gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={isUpdatingStatus}
+                                    onClick={() => handleReturnItem(selectedOrder, item, 'PASS')}
+                                    className="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono text-[9.5px] font-semibold text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+                                  >
+                                    QC Pass
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={isUpdatingStatus}
+                                    onClick={() => handleReturnItem(selectedOrder, item, 'FAIL')}
+                                    className="rounded border border-rose-200 bg-rose-50 px-2 py-1 font-mono text-[9.5px] font-semibold text-rose-700 hover:bg-rose-100 cursor-pointer"
+                                  >
+                                    QC Fail
+                                  </button>
+                                </div>
+                              )}
+                              {!canPartialCancel && !canReturnQc && (
+                                <span className="font-mono text-[10px] text-[#9A9386]">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>

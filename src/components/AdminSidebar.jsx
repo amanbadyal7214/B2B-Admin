@@ -35,8 +35,62 @@ export default function AdminSidebar({
     currentPath.includes('/order') ||
     currentPath.includes('/wholesale-orders')
 
+  const isInventoryPath =
+    currentPath.includes('/inventory') ||
+    currentPath.includes('/stock') ||
+    currentPath.includes('/warehouses')
+
+  const isCustomerPath =
+    currentPath.includes('/customer') ||
+    currentPath.includes('/customers') ||
+    currentPath.includes('/retailer') ||
+    currentPath.includes('/retailers')
+
+  const currentSearch = location.search
+
+  // Customer sub-tab active checks
+  const isRetailersAllActive =
+    isCustomerPath &&
+    !currentSearch.includes('status=') &&
+    !currentSearch.includes('sampleKit=')
+
+  const isPendingActive =
+    isCustomerPath && currentSearch.includes('status=pending')
+
+  const isVerifiedActive =
+    isCustomerPath && currentSearch.includes('status=verified')
+
+  const isSampleKitActive =
+    isCustomerPath && currentSearch.includes('sampleKit=requested')
+
+  // Inventory sub-tab active checks
+  const isStockListActive =
+    isInventoryPath &&
+    (!currentSearch.includes('tab=') || currentSearch.includes('tab=stock'))
+
+  const isInwardActive =
+    isInventoryPath && currentSearch.includes('tab=inward')
+
+  const isAlertsActive =
+    isInventoryPath && currentSearch.includes('tab=alerts')
+
+  const isLocksActive =
+    isInventoryPath && currentSearch.includes('tab=locks')
+
+  const isAdjustReturnActive =
+    isInventoryPath && currentSearch.includes('tab=adjust_return')
+
+  const isMovementsActive =
+    isInventoryPath && currentSearch.includes('tab=movements')
+
+  const isWarehousesActive =
+    isInventoryPath &&
+    (currentSearch.includes('tab=warehouses') || currentPath.includes('/warehouses'))
+
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
   const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(true)
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(true)
+  const [isInventoryDropdownOpen, setIsInventoryDropdownOpen] = useState(true)
 
   // Keep dropdowns open if on their sub-path
   useEffect(() => {
@@ -46,7 +100,13 @@ export default function AdminSidebar({
     if (isProductPath) {
       setIsProductDropdownOpen(true)
     }
-  }, [isAdministratorPath, isProductPath])
+    if (isCustomerPath) {
+      setIsCustomerDropdownOpen(true)
+    }
+    if (isInventoryPath) {
+      setIsInventoryDropdownOpen(true)
+    }
+  }, [isAdministratorPath, isProductPath, isCustomerPath, isInventoryPath])
 
   const handleNav = (path) => {
     navigate(path)
@@ -134,6 +194,373 @@ export default function AdminSidebar({
               </span>
             )}
           </button>
+
+          {/* Inventory & Stock Dropdown Menu */}
+          <div className="pt-1.5">
+            <button
+              type="button"
+              onClick={() => setIsInventoryDropdownOpen((prev) => !prev)}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                isInventoryPath
+                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
+                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={isInventoryPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                    />
+                  </svg>
+                </span>
+                <span className="tracking-wide text-xs">Inventory &amp; Stock</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-full bg-[#FAF3E4] px-1.5 py-0.2 text-[9px] font-mono font-bold text-[#9A6D22] border border-[#E7D6B6]">
+                  SKU
+                </span>
+                <svg
+                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
+                    isInventoryDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+
+            {/* Dropdown Items */}
+            {isInventoryDropdownOpen && (
+              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
+                {/* 1. SKU Stock List */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=stock')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isStockListActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                      />
+                    </svg>
+                    <span>SKU Stock List</span>
+                  </div>
+                  {isStockListActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 2. Stock Inward & Excel */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=inward')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isInwardActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-80 text-[#1F8F5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                      />
+                    </svg>
+                    <span>Stock Inward &amp; Excel</span>
+                  </div>
+                  {isInwardActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 3. Low Stock Alerts */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=alerts')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isAlertsActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-80 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <span>Low Stock Alerts</span>
+                  </div>
+                  {isAlertsActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 4. Active Stock Locks */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=locks')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isLocksActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-80 text-[#805915]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                    <span>Active Stock Locks</span>
+                  </div>
+                  {isLocksActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 5. Adjust & QC Returns */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=adjust_return')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isAdjustReturnActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    <span>Adjust &amp; QC Returns</span>
+                  </div>
+                  {isAdjustReturnActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 6. Movement Audit Trail */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=movements')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isMovementsActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                      />
+                    </svg>
+                    <span>Audit Trail Log</span>
+                  </div>
+                  {isMovementsActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 7. Warehouses & Transfer */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/inventory?tab=warehouses')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isWarehousesActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
+                      />
+                    </svg>
+                    <span>Warehouses &amp; Transfer</span>
+                  </div>
+                  {isWarehousesActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Customer Dropdown Menu */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setIsCustomerDropdownOpen((prev) => !prev)}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                isCustomerPath
+                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
+                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={isCustomerPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </span>
+                <span className="tracking-wide text-xs">Customer</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-full bg-[#FAF3E4] px-1.5 py-0.2 text-[9px] font-mono font-bold text-[#9A6D22] border border-[#E7D6B6]">
+                  B2B
+                </span>
+                <svg
+                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
+                    isCustomerDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+
+            {/* Dropdown Items */}
+            {isCustomerDropdownOpen && (
+              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
+                {/* 1. All Retailers / Directory */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/retailers')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isRetailersAllActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.8"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                    <span>Retailers Directory</span>
+                  </div>
+                  {isRetailersAllActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 2. Pending Clearance */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/retailers?status=pending')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isPendingActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-80 text-[#C59A46]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Pending Clearance</span>
+                  </div>
+                  {isPendingActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 3. Verified Partners */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/retailers?status=verified')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isVerifiedActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-80 text-[#1F8F5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Verified Partners</span>
+                  </div>
+                  {isVerifiedActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+
+                {/* 4. Sample Kit Requests */}
+                <button
+                  type="button"
+                  onClick={() => handleNav('/dashboard/retailers?sampleKit=requested')}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
+                    isSampleKitActive
+                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
+                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 opacity-80 text-[#2E72D2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <span>Sample Kit Requests</span>
+                  </div>
+                  {isSampleKitActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* 2. Product Dropdown Menu */}
           <div className="pt-2">

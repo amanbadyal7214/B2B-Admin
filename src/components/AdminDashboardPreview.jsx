@@ -166,7 +166,11 @@ export default function AdminDashboardPreview({ user, orders = [], kpi = {} }) {
         </div>
 
         {/* KPI 3 */}
-        <div className="rounded-xl border border-[#E9E1D2] bg-[#FFFFFF] p-5 shadow-xs">
+        <div
+          onClick={() => navigate('/dashboard/retailers')}
+          className="cursor-pointer rounded-xl border border-[#E9E1D2] bg-[#FFFFFF] p-5 shadow-xs hover:border-[#C59A46] transition-all"
+          title="Open Retailers Directory"
+        >
           <div className="flex items-center justify-between text-[#7A746B]">
             <span className="text-[11px] font-bold uppercase tracking-[0.12em]">
               Retailer Accounts
