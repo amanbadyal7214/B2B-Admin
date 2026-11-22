@@ -139,6 +139,7 @@ export default function ProductManagementView({ currentUser }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('ALL')
   const [availabilityFilter, setAvailabilityFilter] = useState('ALL')
+  const [placementFilter, setPlacementFilter] = useState('ALL')
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -186,8 +187,10 @@ export default function ProductManagementView({ currentUser }) {
     sizes: 'S – XXL',
     sizeList: 'S, M, L, XL, XXL',
     image: '',
-    isLatestDrop: true,
+    isLatestDrop: false,
     isBestseller: false,
+    isHeroArrival: false,
+    heroTag: '',
     colors: [
       {
         name: 'Obsidian',
@@ -316,6 +319,8 @@ export default function ProductManagementView({ currentUser }) {
         image: prod.image || '',
         isLatestDrop: Boolean(prod.isLatestDrop),
         isBestseller: Boolean(prod.isBestseller),
+        isHeroArrival: Boolean(prod.isHeroArrival),
+        heroTag: prod.heroTag || '',
         colors:
           (prod.variants && prod.variants.length > 0 ? prod.variants : prod.colors)?.map((c) => {
             const colName = c.name || c.color || 'Default'
@@ -933,6 +938,8 @@ export default function ProductManagementView({ currentUser }) {
         submitData.append('variants', JSON.stringify(formattedColors))
         submitData.append('isLatestDrop', String(formData.isLatestDrop))
         submitData.append('isBestseller', String(formData.isBestseller))
+        submitData.append('isHeroArrival', String(formData.isHeroArrival))
+        submitData.append('heroTag', formData.heroTag || '')
         submitData.append('copy', JSON.stringify(copyObj))
         submitData.append('image', primaryImageFile)
 
@@ -965,6 +972,8 @@ export default function ProductManagementView({ currentUser }) {
           image: primaryImagePreview || formData.image || formattedColors[0]?.image || '',
           isLatestDrop: Boolean(formData.isLatestDrop),
           isBestseller: Boolean(formData.isBestseller),
+          isHeroArrival: Boolean(formData.isHeroArrival),
+          heroTag: formData.heroTag || '',
           colors: formattedColors,
           variants: formattedColors,
           copy: copyObj,
@@ -1036,9 +1045,16 @@ export default function ProductManagementView({ currentUser }) {
       const matchesAvailability =
         availabilityFilter === 'ALL' || p.availability === availabilityFilter
 
-      return matchesSearch && matchesCategory && matchesAvailability
+      const matchesPlacement =
+        placementFilter === 'ALL' ||
+        (placementFilter === 'HERO' && Boolean(p.isHeroArrival)) ||
+        (placementFilter === 'BESTSELLER' && Boolean(p.isBestseller)) ||
+        (placementFilter === 'LATEST_DROP' && Boolean(p.isLatestDrop)) ||
+        (placementFilter === 'STANDARD' && !p.isHeroArrival && !p.isBestseller && !p.isLatestDrop)
+
+      return matchesSearch && matchesCategory && matchesAvailability && matchesPlacement
     })
-  }, [products, searchQuery, categoryFilter, availabilityFilter])
+  }, [products, searchQuery, categoryFilter, availabilityFilter, placementFilter])
 
   // Catalog Executive Metrics (Styles, Variants, SKUs, Stock)
   const catalogMetrics = useMemo(() => {
@@ -1244,6 +1260,18 @@ export default function ProductManagementView({ currentUser }) {
             <option value="Made to Order">Made to Order</option>
           </select>
 
+          <select
+            value={placementFilter}
+            onChange={(e) => setPlacementFilter(e.target.value)}
+            className="rounded-lg border border-[#DFD5C2] bg-[#FAF3E4]/70 px-3 py-2 text-xs font-semibold text-[#805915] focus:border-[#C59A46] focus:outline-none"
+          >
+            <option value="ALL">All Home Placements</option>
+            <option value="HERO">🟢 Live Arrived This Morning</option>
+            <option value="BESTSELLER">⭐ Retailer Bestsellers</option>
+            <option value="LATEST_DROP">🚀 The Latest Drop</option>
+            <option value="STANDARD">Standard Catalog Only</option>
+          </select>
+
           <button
             type="button"
             onClick={fetchProducts}
@@ -1290,6 +1318,7 @@ export default function ProductManagementView({ currentUser }) {
                   <th className="px-3 py-3.5">Wholesale Rate</th>
                   <th className="px-3 py-3.5">MOQ &amp; Sizes</th>
                   <th className="px-3 py-3.5">Availability</th>
+                  <th className="px-3 py-3.5">Home Placement</th>
                   <th className="py-3.5 pr-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -1445,6 +1474,31 @@ export default function ProductManagementView({ currentUser }) {
                           </span>
                         </td>
 
+                        {/* Homepage Placement Badges */}
+                        <td className="px-3 py-3">
+                          <div className="flex flex-col gap-1 items-start">
+                            {p.isHeroArrival && (
+                              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#1E7412] border border-emerald-200">
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#1E7412]" />
+                                Live Arrival
+                              </span>
+                            )}
+                            {p.isBestseller && (
+                              <span className="inline-flex items-center gap-1 rounded bg-[#FAF3E4] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#9A6D22] border border-[#E8DEC9]">
+                                ★ Bestseller
+                              </span>
+                            )}
+                            {p.isLatestDrop && (
+                              <span className="inline-flex items-center gap-1 rounded bg-sky-50 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#2E72D2] border border-sky-200">
+                                Latest Drop
+                              </span>
+                            )}
+                            {!p.isHeroArrival && !p.isBestseller && !p.isLatestDrop && (
+                              <span className="font-mono text-[9px] text-[#A8A196]">Standard</span>
+                            )}
+                          </div>
+                        </td>
+
                         {/* Actions */}
                         <td className="py-3 pr-4 text-right">
                           <div className="inline-flex items-center gap-1.5">
@@ -1492,7 +1546,7 @@ export default function ProductManagementView({ currentUser }) {
                       {/* Expandable Drawer for SKUs & 5-angle photos */}
                       {isExpanded && (
                         <tr className="bg-[#FAF8F5] border-b border-[#ECE4D5]">
-                          <td colSpan="8" className="p-4">
+                          <td colSpan="9" className="p-4">
                             <div className="rounded-xl border border-[#E2D8C7] bg-white p-4 space-y-4">
                               <div className="flex items-center justify-between border-b border-[#F0EAE0] pb-2">
                                 <span className="font-mono text-[10.5px] font-bold uppercase tracking-wider text-[#9A6D22]">
@@ -1911,6 +1965,144 @@ export default function ProductManagementView({ currentUser }) {
                         <option value="Ready Stock">Ready Stock</option>
                         <option value="Made to Order">Made to Order</option>
                       </select>
+                    </div>
+                  </div>
+
+                  {/* Homepage Merchandising & Section Placement */}
+                  <div className="rounded-xl border border-[#DFD5C2] bg-[#FFFFFF] p-4 shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#ECE4D5] pb-2.5">
+                      <div>
+                        <label className="block font-serif text-sm font-bold text-[#121214]">
+                          Homepage Merchandising &amp; Showcase Placement
+                        </label>
+                        <p className="text-[11px] text-[#6E685E]">
+                          Select exactly which section(s) on the homepage this product should appear in:
+                        </p>
+                      </div>
+                      <span className="font-mono text-[9.5px] uppercase font-bold text-[#9A6D22] bg-[#FAF3E4] px-2 py-0.5 rounded border border-[#E8DEC9]">
+                        Home Sections
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 pt-1">
+                      {/* Section 1: LIVE · ARRIVED THIS MORNING */}
+                      <div
+                        onClick={() => setFormData((prev) => ({ ...prev, isHeroArrival: !prev.isHeroArrival }))}
+                        className={`flex flex-col justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          formData.isHeroArrival
+                            ? 'border-[#1E824C] bg-emerald-50/80 shadow-2xs ring-1 ring-[#1E824C]/30'
+                            : 'border-[#E2D8C7] bg-[#FCFBF8] hover:border-[#C59A46]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-mono text-[10px] font-bold text-[#1E7412] uppercase tracking-wider block">
+                              Section 1 (Hero Rail)
+                            </span>
+                            <span className="font-bold text-xs text-[#121214] block mt-0.5">
+                              LIVE · ARRIVED THIS MORNING
+                            </span>
+                            <span className="text-[10px] text-[#6E685E] block mt-0.5 leading-snug">
+                              Tiruppur Mill Lot top carousel
+                            </span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData.isHeroArrival)}
+                            onChange={(e) => {
+                              e.stopPropagation()
+                              setFormData((prev) => ({ ...prev, isHeroArrival: e.target.checked }))
+                            }}
+                            className="h-4 w-4 rounded accent-[#1E824C] cursor-pointer mt-0.5 shrink-0"
+                          />
+                        </div>
+                        {formData.isHeroArrival && (
+                          <div className="mt-2.5 pt-2 border-t border-emerald-200" onClick={(e) => e.stopPropagation()}>
+                            <label className="block text-[9px] font-mono text-[#1E7412] font-semibold uppercase">
+                              Badge Tag (e.g. JERSEYS, HEAVY FLEECE)
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.heroTag || ''}
+                              onChange={(e) => setFormData({ ...formData, heroTag: e.target.value })}
+                              placeholder="e.g. 500 GSM FLEECE"
+                              className="mt-1 w-full rounded border border-emerald-300 bg-white px-2 py-1 text-[10px] text-[#121214] font-mono uppercase focus:outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Section 2: RETAILER BESTSELLERS */}
+                      <div
+                        onClick={() => setFormData((prev) => ({ ...prev, isBestseller: !prev.isBestseller }))}
+                        className={`flex flex-col justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          formData.isBestseller
+                            ? 'border-[#C59A46] bg-[#FAF3E4] shadow-2xs ring-1 ring-[#C59A46]/40'
+                            : 'border-[#E2D8C7] bg-[#FCFBF8] hover:border-[#C59A46]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-mono text-[10px] font-bold text-[#9A6D22] uppercase tracking-wider block">
+                              Section 3 (Fast Movers)
+                            </span>
+                            <span className="font-bold text-xs text-[#121214] block mt-0.5">
+                              RETAILER BESTSELLERS
+                            </span>
+                            <span className="text-[10px] text-[#6E685E] block mt-0.5 leading-snug">
+                              Repeat Stock · High Margin
+                            </span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData.isBestseller)}
+                            onChange={(e) => {
+                              e.stopPropagation()
+                              setFormData((prev) => ({ ...prev, isBestseller: e.target.checked }))
+                            }}
+                            className="h-4 w-4 rounded accent-[#C59A46] cursor-pointer mt-0.5 shrink-0"
+                          />
+                        </div>
+                        <span className="mt-2.5 text-[10px] font-mono font-semibold text-[#9A6D22]">
+                          {formData.isBestseller ? '✓ Active in Bestsellers' : '— Inactive'}
+                        </span>
+                      </div>
+
+                      {/* Section 3: THE LATEST DROP */}
+                      <div
+                        onClick={() => setFormData((prev) => ({ ...prev, isLatestDrop: !prev.isLatestDrop }))}
+                        className={`flex flex-col justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          formData.isLatestDrop
+                            ? 'border-[#2E72D2] bg-sky-50/80 shadow-2xs ring-1 ring-[#2E72D2]/30'
+                            : 'border-[#E2D8C7] bg-[#FCFBF8] hover:border-[#C59A46]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="font-mono text-[10px] font-bold text-[#2E72D2] uppercase tracking-wider block">
+                              Section 2 (Just Landed)
+                            </span>
+                            <span className="font-bold text-xs text-[#121214] block mt-0.5">
+                              THE LATEST DROP
+                            </span>
+                            <span className="text-[10px] text-[#6E685E] block mt-0.5 leading-snug">
+                              Tabbed category grid
+                            </span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData.isLatestDrop)}
+                            onChange={(e) => {
+                              e.stopPropagation()
+                              setFormData((prev) => ({ ...prev, isLatestDrop: e.target.checked }))
+                            }}
+                            className="h-4 w-4 rounded accent-[#2E72D2] cursor-pointer mt-0.5 shrink-0"
+                          />
+                        </div>
+                        <span className="mt-2.5 text-[10px] font-mono font-semibold text-[#2E72D2]">
+                          {formData.isLatestDrop ? '✓ Active in Latest Drop' : '— Inactive'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
