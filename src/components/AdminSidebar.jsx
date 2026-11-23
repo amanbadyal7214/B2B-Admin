@@ -45,6 +45,7 @@ export default function AdminSidebar({
     currentPath.includes('/warehouses')
 
   const isPincodePath = currentPath.includes('/pincode')
+  const isBlogPath = currentPath.includes('/blog')
 
   const isAdministratorPath =
     currentPath.includes('/admin-users') ||
@@ -748,6 +749,32 @@ export default function AdminSidebar({
             </div>
           )}
         </div>
+
+        {/* 10.5 Blog & Editorial CMS */}
+        <button
+          type="button"
+          onClick={() => handleNav('/dashboard/blogs')}
+          title="Editorial & Blog CMS"
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+            isBlogPath
+              ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+              : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={isBlogPath ? 'text-white' : 'text-[#8E9CAE]'}>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            {!isCollapsed && <span className="truncate">Editorial &amp; Blogs</span>}
+          </div>
+          {!isCollapsed && (
+            <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
+              CMS
+            </span>
+          )}
+        </button>
 
         {/* 11. Administrator (Shield Icon + Submenu) */}
         <div>

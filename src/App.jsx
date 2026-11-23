@@ -16,6 +16,7 @@ import ServiceablePincodesView from './components/ServiceablePincodesView'
 import AdminOrdersView from './components/AdminOrdersView'
 import AdminInventoryView from './components/AdminInventoryView'
 import AdminRetailersView from './components/AdminRetailersView'
+import BlogManagementView from './components/BlogManagementView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -373,6 +374,24 @@ function App() {
                     <Route
                       path="delivery-pincodes"
                       element={<ServiceablePincodesView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/blogs -> Editorial & Blog CMS */}
+                    <Route
+                      path="blogs"
+                      element={<BlogManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="blog"
+                      element={<BlogManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="articles"
+                      element={<BlogManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="cms"
+                      element={<BlogManagementView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

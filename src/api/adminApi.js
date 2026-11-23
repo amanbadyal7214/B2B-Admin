@@ -544,6 +544,34 @@ export const getGstReportApi = async (params = {}) => {
 }
 
 /**
+ * Editorial Blog & Content CMS APIs
+ */
+export const getAdminBlogsApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/blogs/admin/all', { params })
+  return response.data
+}
+
+export const createBlogApi = async (blogData) => {
+  const response = await axiosInstance.post('/api/blogs', blogData)
+  return response.data
+}
+
+export const updateBlogApi = async (id, blogData) => {
+  const response = await axiosInstance.put(`/api/blogs/${id}`, blogData)
+  return response.data
+}
+
+export const deleteBlogApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/blogs/${id}`)
+  return response.data
+}
+
+export const toggleBlogPublishApi = async (id) => {
+  const response = await axiosInstance.patch(`/api/blogs/${id}/toggle-publish`)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
