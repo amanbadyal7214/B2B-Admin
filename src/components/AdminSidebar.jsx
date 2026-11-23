@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import bvbLogo from '../assets/bvb-logo.png'
 
 export default function AdminSidebar({
   currentUser,
@@ -10,12 +9,12 @@ export default function AdminSidebar({
   const navigate = useNavigate()
   const location = useLocation()
   const currentPath = location.pathname
+  const currentSearch = location.search
 
-  const isAdministratorPath =
-    currentPath.includes('/admin-users') ||
-    currentPath.includes('/create-admin') ||
-    currentPath.includes('/roles') ||
-    currentPath.includes('/audit-logs')
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  // Active path detectors
+  const isOverview = currentPath === '/dashboard' || currentPath === '/dashboard/'
 
   const isProductPath =
     currentPath.includes('/products') ||
@@ -28,17 +27,11 @@ export default function AdminSidebar({
     currentPath.includes('/product-moq') ||
     currentPath.includes('/product')
 
-  const isPincodePath = currentPath.includes('/pincode')
-
   const isOrderPath =
     currentPath.includes('/orders') ||
     currentPath.includes('/order') ||
-    currentPath.includes('/wholesale-orders')
-
-  const isInventoryPath =
-    currentPath.includes('/inventory') ||
-    currentPath.includes('/stock') ||
-    currentPath.includes('/warehouses')
+    currentPath.includes('/wholesale-orders') ||
+    currentPath.includes('/manifests')
 
   const isCustomerPath =
     currentPath.includes('/customer') ||
@@ -46,1002 +39,837 @@ export default function AdminSidebar({
     currentPath.includes('/retailer') ||
     currentPath.includes('/retailers')
 
-  const currentSearch = location.search
+  const isInventoryPath =
+    currentPath.includes('/inventory') ||
+    currentPath.includes('/stock') ||
+    currentPath.includes('/warehouses')
+
+  const isPincodePath = currentPath.includes('/pincode')
+
+  const isAdministratorPath =
+    currentPath.includes('/admin-users') ||
+    currentPath.includes('/create-admin') ||
+    currentPath.includes('/roles') ||
+    currentPath.includes('/audit-logs')
 
   // Customer sub-tab active checks
   const isRetailersAllActive =
     isCustomerPath &&
     !currentSearch.includes('status=') &&
     !currentSearch.includes('sampleKit=')
-
-  const isPendingActive =
-    isCustomerPath && currentSearch.includes('status=pending')
-
-  const isVerifiedActive =
-    isCustomerPath && currentSearch.includes('status=verified')
-
-  const isSampleKitActive =
-    isCustomerPath && currentSearch.includes('sampleKit=requested')
+  const isPendingActive = isCustomerPath && currentSearch.includes('status=pending')
+  const isVerifiedActive = isCustomerPath && currentSearch.includes('status=verified')
+  const isSampleKitActive = isCustomerPath && currentSearch.includes('sampleKit=requested')
 
   // Inventory sub-tab active checks
   const isStockListActive =
     isInventoryPath &&
     (!currentSearch.includes('tab=') || currentSearch.includes('tab=stock'))
-
-  const isInwardActive =
-    isInventoryPath && currentSearch.includes('tab=inward')
-
-  const isAlertsActive =
-    isInventoryPath && currentSearch.includes('tab=alerts')
-
-  const isLocksActive =
-    isInventoryPath && currentSearch.includes('tab=locks')
-
-  const isAdjustReturnActive =
-    isInventoryPath && currentSearch.includes('tab=adjust_return')
-
-  const isMovementsActive =
-    isInventoryPath && currentSearch.includes('tab=movements')
-
+  const isInwardActive = isInventoryPath && currentSearch.includes('tab=inward')
+  const isAlertsActive = isInventoryPath && currentSearch.includes('tab=alerts')
+  const isLocksActive = isInventoryPath && currentSearch.includes('tab=locks')
+  const isAdjustReturnActive = isInventoryPath && currentSearch.includes('tab=adjust_return')
+  const isMovementsActive = isInventoryPath && currentSearch.includes('tab=movements')
   const isWarehousesActive =
     isInventoryPath &&
     (currentSearch.includes('tab=warehouses') || currentPath.includes('/warehouses'))
 
-  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(true)
-  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(true)
-  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(true)
-  const [isInventoryDropdownOpen, setIsInventoryDropdownOpen] = useState(true)
+  // Dropdown states
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false)
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false)
+  const [isInventoryDropdownOpen, setIsInventoryDropdownOpen] = useState(false)
+  const [isDeliveryDropdownOpen, setIsDeliveryDropdownOpen] = useState(false)
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false)
 
   // Keep dropdowns open if on their sub-path
   useEffect(() => {
-    if (isAdministratorPath) {
-      setIsAdminDropdownOpen(true)
-    }
-    if (isProductPath) {
-      setIsProductDropdownOpen(true)
-    }
-    if (isCustomerPath) {
-      setIsCustomerDropdownOpen(true)
-    }
-    if (isInventoryPath) {
-      setIsInventoryDropdownOpen(true)
-    }
-  }, [isAdministratorPath, isProductPath, isCustomerPath, isInventoryPath])
+    if (isProductPath) setIsProductDropdownOpen(true)
+    if (isCustomerPath) setIsCustomerDropdownOpen(true)
+    if (isInventoryPath) setIsInventoryDropdownOpen(true)
+    if (isPincodePath) setIsDeliveryDropdownOpen(true)
+    if (isAdministratorPath) setIsAdminDropdownOpen(true)
+  }, [isProductPath, isCustomerPath, isInventoryPath, isPincodePath, isAdministratorPath])
 
   const handleNav = (path) => {
     navigate(path)
   }
 
-  const isOverview = currentPath === '/dashboard' || currentPath === '/dashboard/'
-
   return (
-    <aside className="sticky top-0 h-screen w-64 shrink-0 bg-[#FFFFFF] border-r border-[#ECE4D5] flex flex-col justify-between py-6 px-4 z-40 shadow-[1px_0_6px_rgba(110,87,44,0.04)] select-none">
-      <div className="overflow-y-auto pr-1">
-        {/* Brand Header with Circular BB Monogram */}
+    <aside
+      className={`sticky top-0 h-screen shrink-0 bg-[#0B1E38] border-r border-[#162D4A] flex flex-col z-40 select-none transition-all duration-300 ${
+        isCollapsed ? 'w-20' : 'w-64 sm:w-68'
+      }`}
+    >
+      {/* 1. Header: Orange Diamond Icon + "Admin Panel" + Toggle Collapse */}
+      <div className="flex items-center justify-between px-3.5 pt-4 pb-2.5">
         <div
           onClick={() => handleNav('/dashboard')}
-          className="flex items-center gap-3 px-2 mb-6 cursor-pointer"
+          className="flex items-center gap-3 cursor-pointer select-none min-w-0"
         >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E8DEC9] bg-[#FAF8F5] p-1 shadow-2xs">
-            <img src={bvbLogo} alt="Buddy Vs Buff" className="max-h-full max-w-full object-contain" />
+          {/* Orange Box with White Diamond Icon */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F95700] shadow-[0_3px_10px_rgba(249,87,0,0.35)]">
+            <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 9l10 13 10-13-10-7zm0 2.8L19.2 9H4.8L12 4.8zm-7 5.2h4.5L12 18 5 10zm6 0h2l-1 7.2L11 10zm3.5 0H19l-7 8 2.5-8z" />
+            </svg>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-serif text-sm font-bold tracking-[0.16em] text-[#121214] truncate">
-              BUDDY VS BUFF
+
+          {!isCollapsed && (
+            <span className="text-[17px] font-bold tracking-wide text-[#F95700] truncate">
+              Admin Panel
             </span>
-            <span className="text-[9px] uppercase font-mono tracking-[0.18em] text-[#9A6D22] font-semibold truncate">
-              Atelier Command
-            </span>
-          </div>
-        </div>
-
-        {/* Main Navigation Section */}
-        <nav className="space-y-1.5 text-xs">
-          {/* 1. Overview (/dashboard) */}
-          <button
-            type="button"
-            onClick={() => handleNav('/dashboard')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${
-              isOverview
-                ? 'bg-[#FAF3E4] border border-[#E5D3AF] text-[#121214] shadow-2xs'
-                : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className={isOverview ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                </svg>
-              </span>
-              <span className="tracking-wide text-xs">Overview</span>
-            </div>
-            {isOverview && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-            )}
-          </button>
-
-          {/* Wholesale Orders (/dashboard/orders) */}
-          <button
-            type="button"
-            onClick={() => handleNav('/dashboard/orders')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all cursor-pointer ${
-              isOrderPath
-                ? 'bg-[#FAF3E4] border border-[#E5D3AF] text-[#121214] shadow-2xs'
-                : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className={isOrderPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
-                </svg>
-              </span>
-              <span className="tracking-wide text-xs">Wholesale Orders</span>
-            </div>
-            {isOrderPath ? (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-            ) : (
-              <span className="rounded-full bg-[#1F8F5A]/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#1F8F5A] border border-[#1F8F5A]/20">
-                Live
-              </span>
-            )}
-          </button>
-
-          {/* Inventory & Stock Dropdown Menu */}
-          <div className="pt-1.5">
-            <button
-              type="button"
-              onClick={() => setIsInventoryDropdownOpen((prev) => !prev)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                isInventoryPath
-                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
-                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={isInventoryPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                    />
-                  </svg>
-                </span>
-                <span className="tracking-wide text-xs">Inventory &amp; Stock</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="rounded-full bg-[#FAF3E4] px-1.5 py-0.2 text-[9px] font-mono font-bold text-[#9A6D22] border border-[#E7D6B6]">
-                  SKU
-                </span>
-                <svg
-                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
-                    isInventoryDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-
-            {/* Dropdown Items */}
-            {isInventoryDropdownOpen && (
-              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
-                {/* 1. SKU Stock List */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=stock')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isStockListActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                      />
-                    </svg>
-                    <span>SKU Stock List</span>
-                  </div>
-                  {isStockListActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 2. Stock Inward & Excel */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=inward')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isInwardActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-80 text-[#1F8F5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                      />
-                    </svg>
-                    <span>Stock Inward &amp; Excel</span>
-                  </div>
-                  {isInwardActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 3. Low Stock Alerts */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=alerts')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isAlertsActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-80 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                    <span>Low Stock Alerts</span>
-                  </div>
-                  {isAlertsActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 4. Active Stock Locks */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=locks')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isLocksActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-80 text-[#805915]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                    <span>Active Stock Locks</span>
-                  </div>
-                  {isLocksActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 5. Adjust & QC Returns */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=adjust_return')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isAdjustReturnActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    <span>Adjust &amp; QC Returns</span>
-                  </div>
-                  {isAdjustReturnActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 6. Movement Audit Trail */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=movements')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isMovementsActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                      />
-                    </svg>
-                    <span>Audit Trail Log</span>
-                  </div>
-                  {isMovementsActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 7. Warehouses & Transfer */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/inventory?tab=warehouses')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isWarehousesActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
-                      />
-                    </svg>
-                    <span>Warehouses &amp; Transfer</span>
-                  </div>
-                  {isWarehousesActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Customer Dropdown Menu */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setIsCustomerDropdownOpen((prev) => !prev)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                isCustomerPath
-                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
-                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={isCustomerPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </span>
-                <span className="tracking-wide text-xs">Customer</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="rounded-full bg-[#FAF3E4] px-1.5 py-0.2 text-[9px] font-mono font-bold text-[#9A6D22] border border-[#E7D6B6]">
-                  B2B
-                </span>
-                <svg
-                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
-                    isCustomerDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-
-            {/* Dropdown Items */}
-            {isCustomerDropdownOpen && (
-              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
-                {/* 1. All Retailers / Directory */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/retailers')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isRetailersAllActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      />
-                    </svg>
-                    <span>Retailers Directory</span>
-                  </div>
-                  {isRetailersAllActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 2. Pending Clearance */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/retailers?status=pending')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isPendingActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-80 text-[#C59A46]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Pending Clearance</span>
-                  </div>
-                  {isPendingActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 3. Verified Partners */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/retailers?status=verified')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isVerifiedActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-80 text-[#1F8F5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Verified Partners</span>
-                  </div>
-                  {isVerifiedActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* 4. Sample Kit Requests */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/retailers?sampleKit=requested')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    isSampleKitActive
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-80 text-[#2E72D2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <span>Sample Kit Requests</span>
-                  </div>
-                  {isSampleKitActive && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* 2. Product Dropdown Menu */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setIsProductDropdownOpen((prev) => !prev)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                isProductPath
-                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
-                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={isProductPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                    />
-                  </svg>
-                </span>
-                <span className="tracking-wide text-xs">Product</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <svg
-                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
-                    isProductDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-
-            {/* Dropdown Items */}
-            {isProductDropdownOpen && (
-              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
-                {/* All Wholesale Products */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/products')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/products' || currentPath === '/dashboard/product' || currentPath === '/dashboard/product-list'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                      />
-                    </svg>
-                    <span>All Products</span>
-                  </div>
-                  {(currentPath === '/dashboard/products' || currentPath === '/dashboard/product' || currentPath === '/dashboard/product-list') && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Product Type */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-type')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/product-type'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                      />
-                    </svg>
-                    <span>Product Type</span>
-                  </div>
-                  {currentPath === '/dashboard/product-type' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-                {/* Product Category */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-category')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/product-category'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                      />
-                    </svg>
-                    <span>Product Category</span>
-                  </div>
-                  {currentPath === '/dashboard/product-category' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Product Sizes */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-size')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    currentPath === '/dashboard/product-size' || currentPath === '/dashboard/product-sizes'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span>Product Sizes</span>
-                  </div>
-                  {(currentPath === '/dashboard/product-size' || currentPath === '/dashboard/product-sizes') && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Product Colours */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-color')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    currentPath === '/dashboard/product-color' || currentPath === '/dashboard/product-colors'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                      />
-                    </svg>
-                    <span>Product Colours</span>
-                  </div>
-                  {(currentPath === '/dashboard/product-color' || currentPath === '/dashboard/product-colors') && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Product Fits */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-fit')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    currentPath === '/dashboard/product-fit' || currentPath === '/dashboard/product-fits'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M4 6h16M4 12h16m-7 6h7"
-                      />
-                    </svg>
-                    <span>Product Fits</span>
-                  </div>
-                  {(currentPath === '/dashboard/product-fit' || currentPath === '/dashboard/product-fits') && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Product Fabrics & GSM */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-fabric')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    currentPath === '/dashboard/product-fabric' || currentPath === '/dashboard/product-fabrics'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                    <span>Product Fabrics &amp; GSM</span>
-                  </div>
-                  {(currentPath === '/dashboard/product-fabric' || currentPath === '/dashboard/product-fabrics') && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Product MOQ & Packs */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/product-moq')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left cursor-pointer ${
-                    currentPath === '/dashboard/product-moq' || currentPath === '/dashboard/product-moqs'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.8"
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                      />
-                    </svg>
-                    <span>Product MOQ &amp; Packs</span>
-                  </div>
-                  {(currentPath === '/dashboard/product-moq' || currentPath === '/dashboard/product-moqs') && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                
-              </div>
-            )}
-          </div>
-
-          {/* Delivery & Serviceable Pincodes */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => handleNav('/dashboard/pincodes')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                isPincodePath
-                  ? 'bg-[#FAF3E4] border border-[#E5D3AF] text-[#121214] shadow-2xs'
-                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={isPincodePath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </span>
-                <span className="tracking-wide text-xs">Delivery Pincodes</span>
-              </div>
-              {isPincodePath && (
-                <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-              )}
-            </button>
-          </div>
-
-          {/* 3. Administrator Dropdown Menu */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setIsAdminDropdownOpen((prev) => !prev)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                isAdministratorPath
-                  ? 'bg-[#FAF8F5] border border-[#E8DEC9] text-[#121214]'
-                  : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214] border border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className={isAdministratorPath ? 'text-[#9A6D22]' : 'text-[#8A847B]'}>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                  </svg>
-                </span>
-                <span className="tracking-wide text-xs">Administrator</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="rounded-full bg-[#FAF3E4] px-1.5 py-0.2 text-[9px] font-mono font-bold text-[#9A6D22] border border-[#E7D6B6]">
-                  Tier 1
-                </span>
-                <svg
-                  className={`h-3.5 w-3.5 text-[#8A847B] transition-transform duration-200 ${
-                    isAdminDropdownOpen ? 'rotate-180 text-[#9A6D22]' : ''
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-
-            {/* Dropdown Items */}
-            {isAdminDropdownOpen && (
-              <div className="mt-1 ml-4 pl-3.5 border-l-2 border-[#EADFC9] space-y-1 py-1">
-                {/* Admin Directory */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/admin-users')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/admin-users'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span>Admin Directory</span>
-                  </div>
-                  {currentPath === '/dashboard/admin-users' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Provision New Admin */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/create-admin')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/create-admin'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    <span>Create Admin</span>
-                  </div>
-                  {currentPath === '/dashboard/create-admin' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Roles & Clearance */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/roles')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/roles'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                    </svg>
-                    <span>Roles & Clearance</span>
-                  </div>
-                  {currentPath === '/dashboard/roles' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-
-                {/* Audit Trail */}
-                <button
-                  type="button"
-                  onClick={() => handleNav('/dashboard/audit-logs')}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] transition-all text-left ${
-                    currentPath === '/dashboard/audit-logs'
-                      ? 'bg-[#FAF3E4] text-[#805915] font-semibold border border-[#E5D3AF]/60'
-                      : 'text-[#635E56] hover:bg-[#FAF8F5] hover:text-[#121214]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                    <span>Audit Trail</span>
-                  </div>
-                  {currentPath === '/dashboard/audit-logs' && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#C59A46]" />
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-        </nav>
-      </div>
-
-      {/* Bottom Pinned Footer */}
-      <div className="pt-4 border-t border-[#ECE4D5] px-1 shrink-0 space-y-3">
-        {/* User Card if logged in */}
-        {currentUser && (
-          <div className="flex items-center justify-between rounded-xl border border-[#ECE4D5] bg-[#FAF8F5] p-2.5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#ECC880] to-[#C59A46] font-mono text-[11px] font-bold text-[#121214] shadow-xs">
-                {currentUser?.name
-                  ? currentUser.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .substring(0, 2)
-                  : 'AD'}
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs font-semibold text-[#121214] truncate">
-                  {currentUser?.name || 'Administrator'}
-                </div>
-                <div className="text-[10px] font-mono text-[#9A6D22] truncate">
-                  {currentUser?.role || 'Administrator'}
-                </div>
-              </div>
-            </div>
-            {onLogout && (
-              <button
-                type="button"
-                onClick={onLogout}
-                className="p-1 text-[#8A847B] hover:text-[#B92D25] rounded transition-colors"
-                title="Sign out of console"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Security & System Status */}
-        <div className="flex items-center justify-between text-[11px] text-[#7A746B]">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#1E824C] animate-pulse" />
-            <span className="font-mono text-[10px]">TLS 1.3 Active</span>
-          </div>
-          {onOpenHelp && (
-            <button
-              type="button"
-              onClick={onOpenHelp}
-              className="text-[#9A6D22] hover:text-[#805915] text-[11px] font-medium underline-offset-2 hover:underline"
-            >
-              Clearance Help
-            </button>
           )}
         </div>
+
+        {/* Collapse / Expand Toggle Button (≡< icon) */}
+        <button
+          type="button"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 text-[#8E9CAE] hover:text-white rounded-lg hover:bg-[#122744] transition-colors"
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          <svg
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="4" y1="6" x2="16" y2="6" />
+            <line x1="4" y1="12" x2="16" y2="12" />
+            <line x1="4" y1="18" x2="16" y2="18" />
+            {isCollapsed ? (
+              <polyline points="15 9 18 12 15 15" />
+            ) : (
+              <polyline points="18 9 15 12 18 15" />
+            )}
+          </svg>
+        </button>
       </div>
+
+      {/* 2. User Profile Strip (Avatar + Admin User + email + Logout) */}
+      <div className="border-t border-[#162D4A] py-2.5 px-3.5 my-1 flex items-center justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#142A45] text-[#CBD5E1] border border-[#1E3B60]">
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+
+          {!isCollapsed && (
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-semibold text-white truncate leading-tight">
+                {currentUser?.name || 'Admin User'}
+              </div>
+              <div className="text-[11px] text-[#8E9CAE] truncate leading-tight mt-0.5">
+                {currentUser?.email || 'admin@gmail.com'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {!isCollapsed && onLogout && (
+          <button
+            type="button"
+            onClick={onLogout}
+            className="p-1.5 text-[#8E9CAE] hover:text-[#F95700] rounded-lg hover:bg-[#122744] transition-colors"
+            title="Sign out of console"
+          >
+            {/* Logout icon: door with right arrow */}
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* 3. Navigation List with Custom Scrollbar */}
+      <nav className="flex-1 overflow-y-auto px-2.5 py-2 space-y-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#1B3454] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+        {/* 1. Dashboard (Home Icon) */}
+        <button
+          type="button"
+          onClick={() => handleNav('/dashboard')}
+          title="Dashboard"
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+            isOverview
+              ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+              : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={isOverview ? 'text-white' : 'text-[#8E9CAE]'}>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+              </svg>
+            </span>
+            {!isCollapsed && <span className="truncate">Dashboard</span>}
+          </div>
+        </button>
+
+        {/* 2. Products (Package Icon + Submenu) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (isCollapsed) setIsCollapsed(false)
+              setIsProductDropdownOpen((prev) => !prev)
+            }}
+            title="Products"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isProductPath && !isProductDropdownOpen
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isProductPath && !isProductDropdownOpen ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15zM5 9.07v6.36l6 3.38v-6.38L5 9.07zm14 6.36V9.07l-6 3.36v6.38l6-3.38z" />
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Products</span>}
+            </div>
+
+            {!isCollapsed && (
+              <svg
+                className={`h-4 w-4 text-[#8E9CAE] transition-transform duration-200 ${
+                  isProductDropdownOpen ? 'rotate-90 text-[#F95700]' : ''
+                }`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
+
+          {/* Products Submenu */}
+          {isProductDropdownOpen && !isCollapsed && (
+            <div className="mt-1 ml-4 pl-3 border-l border-[#1D3A60] space-y-1 py-1">
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/products')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/products' ||
+                  currentPath === '/dashboard/product' ||
+                  currentPath === '/dashboard/product-list'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>All Products</span>
+                {(currentPath === '/dashboard/products' ||
+                  currentPath === '/dashboard/product' ||
+                  currentPath === '/dashboard/product-list') && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-type')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-type'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product Type</span>
+                {currentPath === '/dashboard/product-type' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-category')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-category'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product Category</span>
+                {currentPath === '/dashboard/product-category' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-size')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-size' ||
+                  currentPath === '/dashboard/product-sizes'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product Sizes</span>
+                {(currentPath === '/dashboard/product-size' ||
+                  currentPath === '/dashboard/product-sizes') && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-color')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-color' ||
+                  currentPath === '/dashboard/product-colors'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product Colours</span>
+                {(currentPath === '/dashboard/product-color' ||
+                  currentPath === '/dashboard/product-colors') && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-fit')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-fit' ||
+                  currentPath === '/dashboard/product-fits'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product Fits</span>
+                {(currentPath === '/dashboard/product-fit' ||
+                  currentPath === '/dashboard/product-fits') && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-fabric')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-fabric' ||
+                  currentPath === '/dashboard/product-fabrics'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product Fabrics &amp; GSM</span>
+                {(currentPath === '/dashboard/product-fabric' ||
+                  currentPath === '/dashboard/product-fabrics') && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/product-moq')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/product-moq' ||
+                  currentPath === '/dashboard/product-moqs'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Product MOQ &amp; Packs</span>
+                {(currentPath === '/dashboard/product-moq' ||
+                  currentPath === '/dashboard/product-moqs') && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Orders (Shopping Cart Icon) */}
+        <button
+          type="button"
+          onClick={() => handleNav('/dashboard/orders')}
+          title="Orders"
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+            isOrderPath
+              ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+              : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={isOrderPath ? 'text-white' : 'text-[#8E9CAE]'}>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+              </svg>
+            </span>
+            {!isCollapsed && <span className="truncate">Orders</span>}
+          </div>
+        </button>
+
+        {/* 4. Customers (Users Icon + Submenu) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (isCollapsed) setIsCollapsed(false)
+              setIsCustomerDropdownOpen((prev) => !prev)
+            }}
+            title="Customers"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isCustomerPath && !isCustomerDropdownOpen
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isCustomerPath && !isCustomerDropdownOpen ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Customers</span>}
+            </div>
+
+            {!isCollapsed && (
+              <svg
+                className={`h-4 w-4 text-[#8E9CAE] transition-transform duration-200 ${
+                  isCustomerDropdownOpen ? 'rotate-90 text-[#F95700]' : ''
+                }`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
+
+          {/* Customers Submenu */}
+          {isCustomerDropdownOpen && !isCollapsed && (
+            <div className="mt-1 ml-4 pl-3 border-l border-[#1D3A60] space-y-1 py-1">
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/retailers')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isRetailersAllActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Retailers Directory</span>
+                {isRetailersAllActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/retailers?status=pending')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isPendingActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Pending Clearance</span>
+                {isPendingActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/retailers?status=verified')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isVerifiedActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Verified Partners</span>
+                {isVerifiedActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/retailers?sampleKit=requested')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isSampleKitActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Sample Kit Requests</span>
+                {isSampleKitActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 6. Inventory (Diamond Icon + Submenu) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (isCollapsed) setIsCollapsed(false)
+              setIsInventoryDropdownOpen((prev) => !prev)
+            }}
+            title="Inventory"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isInventoryPath && !isInventoryDropdownOpen
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isInventoryPath && !isInventoryDropdownOpen ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 9l10 13 10-13-10-7zm0 2.8L19.2 9H4.8L12 4.8zm-7 5.2h4.5L12 18 5 10zm6 0h2l-1 7.2L11 10zm3.5 0H19l-7 8 2.5-8z" />
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Inventory</span>}
+            </div>
+
+            {!isCollapsed && (
+              <svg
+                className={`h-4 w-4 text-[#8E9CAE] transition-transform duration-200 ${
+                  isInventoryDropdownOpen ? 'rotate-90 text-[#F95700]' : ''
+                }`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
+
+          {/* Inventory Submenu */}
+          {isInventoryDropdownOpen && !isCollapsed && (
+            <div className="mt-1 ml-4 pl-3 border-l border-[#1D3A60] space-y-1 py-1">
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=stock')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isStockListActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>SKU Stock List</span>
+                {isStockListActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=inward')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isInwardActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Stock Inward &amp; Excel</span>
+                {isInwardActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=alerts')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isAlertsActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Low Stock Alerts</span>
+                {isAlertsActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=locks')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isLocksActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Active Stock Locks</span>
+                {isLocksActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=adjust_return')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isAdjustReturnActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Adjust &amp; QC Returns</span>
+                {isAdjustReturnActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=movements')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isMovementsActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Movement Audit Trail</span>
+                {isMovementsActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/inventory?tab=warehouses')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isWarehousesActive
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Warehouses &amp; Transfer</span>
+                {isWarehousesActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 10. Delivery Management (Truck Icon + Submenu) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (isCollapsed) setIsCollapsed(false)
+              setIsDeliveryDropdownOpen((prev) => !prev)
+            }}
+            title="Delivery Management"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isPincodePath && !isDeliveryDropdownOpen
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isPincodePath && !isDeliveryDropdownOpen ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Delivery Management</span>}
+            </div>
+
+            {!isCollapsed && (
+              <svg
+                className={`h-4 w-4 text-[#8E9CAE] transition-transform duration-200 ${
+                  isDeliveryDropdownOpen ? 'rotate-90 text-[#F95700]' : ''
+                }`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
+
+          {/* Delivery Submenu */}
+          {isDeliveryDropdownOpen && !isCollapsed && (
+            <div className="mt-1 ml-4 pl-3 border-l border-[#1D3A60] space-y-1 py-1">
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/pincodes')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  isPincodePath
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Delivery Pincodes</span>
+                {isPincodePath && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 11. Administrator (Shield Icon + Submenu) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (isCollapsed) setIsCollapsed(false)
+              setIsAdminDropdownOpen((prev) => !prev)
+            }}
+            title="Administrator"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isAdministratorPath && !isAdminDropdownOpen
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isAdministratorPath && !isAdminDropdownOpen ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Administrator</span>}
+            </div>
+
+            {!isCollapsed && (
+              <svg
+                className={`h-4 w-4 text-[#8E9CAE] transition-transform duration-200 ${
+                  isAdminDropdownOpen ? 'rotate-90 text-[#F95700]' : ''
+                }`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            )}
+          </button>
+
+          {/* Administrator Submenu */}
+          {isAdminDropdownOpen && !isCollapsed && (
+            <div className="mt-1 ml-4 pl-3 border-l border-[#1D3A60] space-y-1 py-1">
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/admin-users')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/admin-users'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Admin Directory</span>
+                {currentPath === '/dashboard/admin-users' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/create-admin')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/create-admin'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Create Admin</span>
+                {currentPath === '/dashboard/create-admin' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/roles')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/roles'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Roles &amp; Clearance</span>
+                {currentPath === '/dashboard/roles' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNav('/dashboard/audit-logs')}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                  currentPath === '/dashboard/audit-logs'
+                    ? 'text-[#F95700] bg-[#122744] font-semibold border-l-2 border-[#F95700]'
+                    : 'text-[#8E9CAE] hover:text-white hover:bg-[#122744]'
+                }`}
+              >
+                <span>Audit Trail</span>
+                {currentPath === '/dashboard/audit-logs' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#F95700]" />
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* 4. Bottom Footer Security / Help */}
+      {!isCollapsed && onOpenHelp && (
+        <div className="p-3 border-t border-[#162D4A] shrink-0">
+          <button
+            type="button"
+            onClick={onOpenHelp}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#142A45]/80 hover:bg-[#142A45] text-[#8E9CAE] hover:text-white text-xs font-medium transition-colors"
+          >
+            <span className="h-2 w-2 rounded-full bg-[#10B981] animate-pulse" />
+            <span>Clearance &amp; Security Help</span>
+          </button>
+        </div>
+      )}
     </aside>
   )
 }
