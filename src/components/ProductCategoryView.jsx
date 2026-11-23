@@ -14,6 +14,7 @@ function ProductCategoryView({ currentUser }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [typeFilter, setTypeFilter] = useState('ALL')
+  const [pdfFilter, setPdfFilter] = useState('ALL')
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -31,6 +32,12 @@ function ProductCategoryView({ currentUser }) {
   const [imageUrl, setImageUrl] = useState('')
   const [imagePreview, setImagePreview] = useState('')
   const [imageMode, setImageMode] = useState('file') // 'file' or 'url'
+
+  // PDF Catalogue Lookbook State
+  const [pdfFile, setPdfFile] = useState(null)
+  const [pdfUrl, setPdfUrl] = useState('')
+  const [pdfMode, setPdfMode] = useState('file') // 'file' or 'url'
+  const [existingPdf, setExistingPdf] = useState(null)
 
   // Edit Mode State
   const [editingCategory, setEditingCategory] = useState(null)
@@ -90,6 +97,10 @@ function ProductCategoryView({ currentUser }) {
     setImageUrl('')
     setImagePreview('')
     setImageMode('file')
+    setPdfFile(null)
+    setPdfUrl('')
+    setPdfMode('file')
+    setExistingPdf(null)
     setIsModalOpen(true)
   }
 
@@ -106,7 +117,44 @@ function ProductCategoryView({ currentUser }) {
     setImageUrl(cat.image || '')
     setImagePreview(cat.image || '')
     setImageMode(cat.image ? 'url' : 'file')
+    setPdfFile(null)
+    setPdfUrl(cat.cataloguePdf || '')
+    setPdfMode(cat.cataloguePdf ? 'url' : 'file')
+    setExistingPdf(
+      cat.cataloguePdf
+        ? {
+            url: cat.cataloguePdf,
+            name: cat.cataloguePdfName || `${cat.name || 'Category'}-Catalogue.pdf`,
+            size: cat.cataloguePdfSize || '',
+          }
+        : null
+    )
     setIsModalOpen(true)
+  }
+
+  const handlePdfChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setErrorMessage('Please select a valid PDF document.')
+      return
+    }
+    setPdfFile(file)
+    setPdfUrl('')
+    const sizeMb = file.size / (1024 * 1024)
+    const formattedSize = sizeMb < 1 ? `${Math.round(file.size / 1024)} KB` : `${sizeMb.toFixed(1)} MB`
+    setExistingPdf({
+      url: URL.createObjectURL(file),
+      name: file.name,
+      size: formattedSize,
+      isLocalBlob: true,
+    })
+  }
+
+  const handleRemovePdf = () => {
+    setPdfFile(null)
+    setPdfUrl('')
+    setExistingPdf(null)
   }
 
   const handleImageChange = (e) => {
@@ -157,6 +205,18 @@ function ProductCategoryView({ currentUser }) {
     } else if (!imagePreview && editingCategory?.image) {
       // User removed the existing image
       submitData.append('image', '')
+    }
+
+    // Handle Catalogue PDF Lookbook upload/removal
+    if (pdfFile) {
+      submitData.append('pdf', pdfFile)
+      submitData.append('cataloguePdfName', pdfFile.name)
+    } else if (pdfUrl && pdfUrl.trim()) {
+      submitData.append('cataloguePdf', pdfUrl.trim())
+      submitData.append('cataloguePdfName', `${formData.name.trim()}-Catalogue.pdf`)
+    } else if (!existingPdf && editingCategory?.cataloguePdf) {
+      // User removed the existing PDF
+      submitData.append('cataloguePdf', '')
     }
 
     try {
@@ -268,7 +328,13 @@ function ProductCategoryView({ currentUser }) {
       cat.productType?._id === typeFilter ||
       cat.productType === typeFilter
 
-    return matchesSearch && matchesStatus && matchesType
+    const hasPdf = Boolean(cat.cataloguePdf && cat.cataloguePdf.trim())
+    const matchesPdf =
+      pdfFilter === 'ALL' ||
+      (pdfFilter === 'WITH_PDF' && hasPdf) ||
+      (pdfFilter === 'WITHOUT_PDF' && !hasPdf)
+
+    return matchesSearch && matchesStatus && matchesType && matchesPdf
   })
 
   return (
@@ -288,7 +354,7 @@ function ProductCategoryView({ currentUser }) {
             Product Categories
           </h1>
           <p className="text-xs text-[#7A746B] mt-0.5">
-            Organize wholesale styles, apparel classification tiers, and SKU taxonomy with Product Types.
+            Organize wholesale styles, category lookbook PDFs, and apparel classification tiers with Product Types.
           </p>
         </div>
 
@@ -359,7 +425,7 @@ function ProductCategoryView({ currentUser }) {
       )}
 
       {/* Metric Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-[#ECE4D5] bg-[#FFFFFF] p-4 shadow-2xs">
           <div className="flex items-center justify-between text-[#8A847B]">
             <span className="font-mono text-[10px] uppercase tracking-wider font-semibold">
@@ -376,6 +442,26 @@ function ProductCategoryView({ currentUser }) {
           </div>
           <div className="text-[11px] text-[#7A746B] mt-0.5">
             Active in Atelier Catalog
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#ECE4D5] bg-[#FFFFFF] p-4 shadow-2xs">
+          <div className="flex items-center justify-between text-[#8A847B]">
+            <span className="font-mono text-[10px] uppercase tracking-wider font-semibold">
+              Lookbook PDFs
+            </span>
+            <div className="h-7 w-7 rounded-lg bg-[#FFF7E8] flex items-center justify-center text-[#F95700] border border-[#FAD79F]">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-serif font-bold text-[#F95700]">
+            {categories.filter((c) => c.cataloguePdf).length}
+            <span className="text-sm font-normal text-[#8A847B] ml-1">/ {categories.length}</span>
+          </div>
+          <div className="text-[11px] text-[#7A746B] mt-0.5">
+            Categories with PDF Lookbook Live
           </div>
         </div>
 
@@ -464,7 +550,7 @@ function ProductCategoryView({ currentUser }) {
               key={st}
               type="button"
               onClick={() => setStatusFilter(st)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
                 statusFilter === st
                   ? 'bg-[#FAF3E4] text-[#805915] border border-[#E5D3AF]'
                   : 'text-[#7A746B] hover:text-[#121214] hover:bg-[#FAF8F5]'
@@ -473,6 +559,49 @@ function ProductCategoryView({ currentUser }) {
               {st === 'ALL' ? 'All' : st}
             </button>
           ))}
+        </div>
+
+        {/* PDF Lookbook Filter Tabs */}
+        <div className="flex items-center gap-1 border-l border-[#ECE4D5] pl-3">
+          <span className="text-[11px] font-semibold text-[#7A746B] mr-1 hidden sm:inline">
+            PDF:
+          </span>
+          <button
+            type="button"
+            onClick={() => setPdfFilter('ALL')}
+            className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
+              pdfFilter === 'ALL'
+                ? 'bg-[#121214] text-[#FAD79F]'
+                : 'text-[#7A746B] hover:text-[#121214]'
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => setPdfFilter('WITH_PDF')}
+            className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all inline-flex items-center gap-1 ${
+              pdfFilter === 'WITH_PDF'
+                ? 'bg-[#F95700] text-white'
+                : 'text-[#7A746B] hover:text-[#F95700]'
+            }`}
+          >
+            <span>With PDF</span>
+            <span className="rounded bg-black/20 px-1 py-0.2 text-[9px]">
+              {categories.filter((c) => c.cataloguePdf).length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPdfFilter('WITHOUT_PDF')}
+            className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
+              pdfFilter === 'WITHOUT_PDF'
+                ? 'bg-[#C23B37] text-white'
+                : 'text-[#7A746B] hover:text-[#C23B37]'
+            }`}
+          >
+            Missing PDF
+          </button>
         </div>
       </div>
 
@@ -527,6 +656,7 @@ function ProductCategoryView({ currentUser }) {
                 <th className="py-3 px-4 font-semibold">Category Code</th>
                 <th className="py-3 px-4 font-semibold">Category Name</th>
                 <th className="py-3 px-4 font-semibold">Product Type</th>
+                <th className="py-3 px-4 font-semibold">Lookbook PDF</th>
                 <th className="py-3 px-4 font-semibold">Slug Identifier</th>
                 <th className="py-3 px-4 font-semibold">Status</th>
                 <th className="py-3 px-4 font-semibold">Created Date</th>
@@ -597,6 +727,33 @@ function ProductCategoryView({ currentUser }) {
                       </span>
                     ) : (
                       <span className="font-mono text-[10px] text-[#A8A196]">—</span>
+                    )}
+                  </td>
+
+                  {/* Lookbook PDF */}
+                  <td className="py-3.5 px-4 font-mono text-[11px]">
+                    {cat.cataloguePdf ? (
+                      <a
+                        href={cat.cataloguePdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FAF3E4] text-[#805915] border border-[#E5D3AF] hover:bg-[#F2E5C8] font-semibold text-[10.5px] transition-colors"
+                        title={cat.cataloguePdfName || 'View Catalogue PDF'}
+                      >
+                        <svg className="h-3.5 w-3.5 text-[#B92D25]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8 17v-1h8v1H8zm0-3v-1h8v1H8zm0-3v-1h4v1H8z" />
+                        </svg>
+                        <span>{cat.cataloguePdfSize ? `PDF (${cat.cataloguePdfSize})` : 'PDF Lookbook'}</span>
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(cat)}
+                        className="text-[#A8A196] hover:text-[#9A6D22] text-[10.5px] font-mono hover:underline cursor-pointer"
+                        title="Upload PDF Catalogue"
+                      >
+                        + Add PDF
+                      </button>
                     )}
                   </td>
 
@@ -825,6 +982,138 @@ function ProductCategoryView({ currentUser }) {
                         />
                         <p className="text-[10.5px] text-[#8A847B] mt-1.5 leading-relaxed">
                           Paste any Cloudinary image link or external hosted image URL.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Category Digital Catalogue / Lookbook (PDF) */}
+              <div className="rounded-xl border border-[#E8DEC9] bg-[#FAF8F5]/90 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block font-bold text-[#121214]">
+                      Category Lookbook (PDF)
+                    </label>
+                    <span className="text-[10px] font-mono text-[#9A6D22]">
+                      Shows on Product Details &amp; Digital Lookbooks Page
+                    </span>
+                  </div>
+
+                  {/* Mode Switcher */}
+                  <div className="inline-flex rounded-lg border border-[#E2D8C7] bg-[#FFFFFF] p-0.5 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setPdfMode('file')}
+                      className={`px-3 py-1 rounded-md font-semibold transition-all ${
+                        pdfMode === 'file'
+                          ? 'bg-[#FAF3E4] text-[#805915] shadow-2xs'
+                          : 'text-[#7A746B] hover:text-[#121214]'
+                      }`}
+                    >
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPdfMode('url')}
+                      className={`px-3 py-1 rounded-md font-semibold transition-all ${
+                        pdfMode === 'url'
+                          ? 'bg-[#FAF3E4] text-[#805915] shadow-2xs'
+                          : 'text-[#7A746B] hover:text-[#121214]'
+                      }`}
+                    >
+                      Paste URL
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  {/* PDF Preview Card */}
+                  {existingPdf ? (
+                    <div className="relative group h-20 w-32 shrink-0 flex flex-col justify-between rounded-xl border border-[#C59A46] bg-[#FFFFFF] p-2.5 shadow-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-5 w-5 rounded bg-[#FDF2F2] text-[#B92D25] flex items-center justify-center font-bold text-[9px]">
+                          PDF
+                        </span>
+                        <span className="text-[10px] font-mono font-bold text-[#805915] truncate">
+                          {existingPdf.size || 'Lookbook'}
+                        </span>
+                      </div>
+                      <div className="text-[10.5px] text-[#121214] font-medium truncate" title={existingPdf.name}>
+                        {existingPdf.name}
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] pt-1 border-t border-[#F0EAE1]">
+                        <a
+                          href={existingPdf.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#9A6D22] hover:underline font-bold"
+                        >
+                          View PDF
+                        </a>
+                        <button
+                          type="button"
+                          onClick={handleRemovePdf}
+                          className="text-[#B92D25] hover:underline font-bold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-32 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#DFD5C2] bg-[#FFFFFF] text-[#A8A196]">
+                      <svg className="h-5 w-5 opacity-60 text-[#B92D25]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8 17v-1h8v1H8zm0-3v-1h8v1H8zm0-3v-1h4v1H8z" />
+                      </svg>
+                      <span className="text-[9px] font-mono mt-0.5 font-medium">No PDF Attached</span>
+                    </div>
+                  )}
+
+                  {/* Input Controls */}
+                  <div className="flex-1">
+                    {pdfMode === 'file' ? (
+                      <div>
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#DFD5C2] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#6B6357] hover:bg-[#F3EFE8] hover:border-[#C59A46] transition-all shadow-2xs">
+                          <svg className="h-4 w-4 text-[#B92D25]" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8 17v-1h8v1H8zm0-3v-1h8v1H8zm0-3v-1h4v1H8z" />
+                          </svg>
+                          <span>{existingPdf ? 'Change PDF File' : 'Choose Catalogue PDF'}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handlePdfChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[10.5px] text-[#8A847B] mt-1.5 leading-relaxed">
+                          Select a PDF lookbook or line-sheet for this category.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          type="url"
+                          value={pdfUrl}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setPdfUrl(val)
+                            setPdfFile(null)
+                            if (val.trim()) {
+                              setExistingPdf({
+                                url: val.trim(),
+                                name: `${formData.name || 'Category'}-Catalogue.pdf`,
+                                size: 'External PDF',
+                              })
+                            } else {
+                              setExistingPdf(null)
+                            }
+                          }}
+                          placeholder="https://.../catalogue.pdf"
+                          className="w-full rounded-xl border border-[#E8DEC9] bg-[#FFFFFF] p-2.5 text-xs text-[#121214] placeholder-[#A8A196] focus:border-[#C59A46] focus:outline-none"
+                        />
+                        <p className="text-[10.5px] text-[#8A847B] mt-1.5 leading-relaxed">
+                          Enter direct link to PDF hosted on Cloudinary or external URL.
                         </p>
                       </div>
                     )}
