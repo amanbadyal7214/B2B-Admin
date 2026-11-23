@@ -4,7 +4,12 @@ import {
   updateAdminOrderStatusApi,
   partialCancelOrderItemApi,
   processOrderReturnApi,
+  getInvoiceByOrderIdApi,
+  generateInvoiceApi,
+  issueCreditNoteApi,
+  getGstReportApi,
 } from '../api'
+import TaxInvoiceModal from './TaxInvoiceModal'
 
 const STATUS_CONFIG = {
   paid: { label: 'Paid (Ready to Pack)', bg: 'bg-[#1F8F5A]/10', border: 'border-[#1F8F5A]/30', text: 'text-[#1F8F5A]', dot: 'bg-[#1F8F5A]' },
@@ -44,6 +49,74 @@ export default function AdminOrdersView() {
   const [editTrackingNumber, setEditTrackingNumber] = useState('')
   const [editHub, setEditHub] = useState('')
   const [editNotes, setEditNotes] = useState('')
+
+  // GST Invoice State
+  const [selectedInvoice, setSelectedInvoice] = useState(null)
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
+  const [isExportingGst, setIsExportingGst] = useState(false)
+
+  const handleViewInvoice = async (orderId) => {
+    try {
+      setSuccessMessage('Loading GST Tax Invoice for ' + orderId + '...')
+      const res = await getInvoiceByOrderIdApi(orderId)
+      if (res?.success && res.invoice) {
+        setSelectedInvoice(res.invoice)
+        setIsInvoiceModalOpen(true)
+      } else {
+        // Try manual generation
+        const genRes = await generateInvoiceApi({ orderId })
+        if (genRes?.success && genRes.invoice) {
+          setSelectedInvoice(genRes.invoice)
+          setIsInvoiceModalOpen(true)
+        } else {
+          setErrorMessage('Could not load or generate invoice.')
+        }
+      }
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || 'Invoice record not found.')
+    }
+  }
+
+  const handleIssueCreditNote = async (invoiceId) => {
+    if (!window.confirm('Issue official GST Credit Note and cancel this invoice?')) return
+    try {
+      const res = await issueCreditNoteApi(invoiceId, {
+        reason: 'Order Return / Cancellation Authorization',
+      })
+      if (res?.success) {
+        setSuccessMessage('GST Credit Note generated: ' + res.creditNote?.invoiceNumber)
+        setSelectedInvoice(res.creditNote)
+        fetchOrders()
+      } else {
+        setErrorMessage(res?.message || 'Failed to issue credit note.')
+      }
+    } catch (err) {
+      setErrorMessage(err.response?.data?.message || 'Error generating credit note.')
+    }
+  }
+
+  const handleExportGstr1 = async () => {
+    try {
+      setIsExportingGst(true)
+      setSuccessMessage('Generating GSTR-1 CSV report...')
+      const res = await getGstReportApi({ format: 'csv' })
+      // Trigger download
+      const blob = new Blob([res], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `GSTR-1-BVB-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setSuccessMessage('GSTR-1 CSV report downloaded successfully.')
+    } catch (err) {
+      console.error('[ExportGstr1] Error:', err)
+      setErrorMessage('Failed to download GSTR-1 report.')
+    } finally {
+      setIsExportingGst(false)
+    }
+  }
 
   const formatPrice = (val) => {
     return new Intl.NumberFormat('en-IN', {
@@ -230,7 +303,19 @@ export default function AdminOrdersView() {
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleExportGstr1}
+            disabled={isExportingGst}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#D9AE6A] bg-[#FAF8F5] px-3.5 py-2 text-xs font-semibold text-[#7A5220] shadow-2xs transition-all hover:bg-[#FAF1D6] hover:border-[#9A6D22] disabled:opacity-50"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>{isExportingGst ? 'Exporting...' : 'Export GSTR-1 (CSV)'}</span>
+          </button>
+
           <button
             type="button"
             onClick={fetchOrders}
@@ -544,6 +629,14 @@ export default function AdminOrdersView() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
+                            onClick={() => handleViewInvoice(order.orderId)}
+                            title="View / Issue GST Tax Invoice"
+                            className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[#D9AE6A] bg-[#FAF8F5] px-2.5 py-1 text-xs font-semibold text-[#7A5220] transition-all hover:bg-[#FAF1D6]"
+                          >
+                            <span>Tax Invoice</span>
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleOpenOrder(order)}
                             title="View Full Manifest / Proforma Invoice"
                             className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[#ECE4D5] bg-[#FAF8F5] px-2.5 py-1 text-xs font-semibold text-[#121214] transition-all hover:border-[#121214] hover:bg-white"
@@ -586,6 +679,14 @@ export default function AdminOrdersView() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleViewInvoice(selectedOrder.orderId)}
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[#D9AE6A] bg-[#FAF8F5] px-3 py-1.5 text-xs font-semibold text-[#7A5220] hover:bg-[#FAF1D6]"
+                >
+                  <span>🧾 Tax Invoice (GST)</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => window.print()}
@@ -864,6 +965,14 @@ export default function AdminOrdersView() {
           </div>
         </div>
       )}
+
+      {/* GST Tax Invoice & Credit Note Modal */}
+      <TaxInvoiceModal
+        invoice={selectedInvoice}
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        onIssueCreditNote={handleIssueCreditNote}
+      />
     </div>
   )
 }

@@ -506,6 +506,44 @@ export const deleteRetailerApi = async (id) => {
 }
 
 /**
+ * GST Tax Invoices & Credit Notes Management
+ */
+export const getAdminInvoicesApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/invoices/admin/all', { params })
+  return response.data
+}
+
+export const generateInvoiceApi = async (payload) => {
+  const response = await axiosInstance.post('/api/invoices/admin/generate', payload)
+  return response.data
+}
+
+export const getInvoiceByOrderIdApi = async (orderId) => {
+  const response = await axiosInstance.get(`/api/invoices/order/${orderId}`)
+  return response.data
+}
+
+export const getInvoiceByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/invoices/${id}`)
+  return response.data
+}
+
+export const issueCreditNoteApi = async (invoiceId, payload = {}) => {
+  const response = await axiosInstance.post(`/api/invoices/admin/${invoiceId}/credit-note`, payload)
+  return response.data
+}
+
+export const updateInvoiceStatusApi = async (invoiceId, payload) => {
+  const response = await axiosInstance.patch(`/api/invoices/admin/${invoiceId}/status`, payload)
+  return response.data
+}
+
+export const getGstReportApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/invoices/admin/gst-report', { params })
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {
