@@ -480,6 +480,8 @@ export const getAdminRetailersApi = async (params = {}) => {
   return response.data
 }
 
+export const getAllRetailersApi = getAdminRetailersApi
+
 export const getAdminRetailerByIdApi = async (id) => {
   const response = await axiosInstance.get(`/api/retailers/${encodeURIComponent(id)}`)
   return response.data
@@ -584,6 +586,52 @@ export const updateOurStoryApi = async (data) => {
   const response = await axiosInstance.put('/api/our-story', data, {
     headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
   })
+  return response.data
+}
+
+/**
+ * Referral Marketing & Rewards Wallet Admin APIs
+ */
+export const getAdminReferralConfigApi = async () => {
+  const response = await axiosInstance.get('/api/referrals/admin/config')
+  return response.data
+}
+
+export const updateAdminReferralConfigApi = async (configData) => {
+  const response = await axiosInstance.put('/api/referrals/admin/config', configData)
+  return response.data
+}
+
+export const getAdminReferralsListApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/referrals/admin/list', { params })
+  return response.data
+}
+
+export const overrideReferralApi = async (id, action, reason) => {
+  const response = await axiosInstance.post(`/api/referrals/admin/override/${id}`, {
+    action,
+    reason,
+  })
+  return response.data
+}
+
+export const getAdminUserLedgerApi = async (userId) => {
+  const response = await axiosInstance.get(`/api/referrals/admin/ledger/${userId}`)
+  return response.data
+}
+
+export const createAdminAdjustmentApi = async (payload) => {
+  const response = await axiosInstance.post('/api/referrals/admin/adjustment', payload)
+  return response.data
+}
+
+export const getAdminReferralReportsApi = async () => {
+  const response = await axiosInstance.get('/api/referrals/admin/reports')
+  return response.data
+}
+
+export const triggerMaturedReferralsApi = async () => {
+  const response = await axiosInstance.post('/api/referrals/admin/process-matured')
   return response.data
 }
 

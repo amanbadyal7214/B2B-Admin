@@ -18,6 +18,7 @@ import AdminInventoryView from './components/AdminInventoryView'
 import AdminRetailersView from './components/AdminRetailersView'
 import BlogManagementView from './components/BlogManagementView'
 import OurStoryManagementView from './components/OurStoryManagementView'
+import AdminReferralsView from './components/AdminReferralsView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -405,6 +406,24 @@ function App() {
                     <Route
                       path="about-us"
                       element={<OurStoryManagementView currentUser={currentUser} />}
+                    />
+
+                    {/* /dashboard/referrals -> Referral Marketing & Rewards Ledger */}
+                    <Route
+                      path="referrals"
+                      element={<AdminReferralsView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="referral"
+                      element={<AdminReferralsView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="rewards"
+                      element={<AdminReferralsView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="reward"
+                      element={<AdminReferralsView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

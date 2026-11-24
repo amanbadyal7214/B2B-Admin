@@ -50,6 +50,9 @@ export default function AdminSidebar({
     currentPath.includes('/our-story') ||
     currentPath.includes('/story') ||
     currentPath.includes('/about-us')
+  const isReferralPath =
+    currentPath.includes('/referral') ||
+    currentPath.includes('/reward')
 
   const isAdministratorPath =
     currentPath.includes('/admin-users') ||
@@ -802,6 +805,35 @@ export default function AdminSidebar({
           {!isCollapsed && (
             <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
               About Us
+            </span>
+          )}
+        </button>
+
+        {/* 10.7 Referral & Rewards Ledger */}
+        <button
+          type="button"
+          onClick={() => handleNav('/dashboard/referrals')}
+          title="Referral & Rewards Ledger"
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+            isReferralPath
+              ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+              : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={isReferralPath ? 'text-white' : 'text-[#8E9CAE]'}>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </span>
+            {!isCollapsed && <span className="truncate">Referrals &amp; Wallet</span>}
+          </div>
+          {!isCollapsed && (
+            <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
+              Rewards
             </span>
           )}
         </button>

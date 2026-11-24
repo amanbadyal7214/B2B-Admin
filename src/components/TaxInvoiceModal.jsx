@@ -335,6 +335,13 @@ export default function TaxInvoiceModal({
                 </div>
               )}
 
+              {totals.rewardApplied > 0 && (
+                <div className="flex items-center justify-between text-[#1F8F5A] font-semibold">
+                  <span>Rewards Wallet Credit Applied:</span>
+                  <span>- {formatCurrency(totals.rewardApplied)}</span>
+                </div>
+              )}
+
               {buyer.isInterState ? (
                 <div className="flex items-center justify-between text-[#5C5852]">
                   <span>Integrated GST (IGST):</span>
