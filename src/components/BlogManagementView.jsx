@@ -6,6 +6,7 @@ import {
   deleteBlogApi,
   toggleBlogPublishApi,
 } from '../api'
+import OurStoryManagementView from './OurStoryManagementView'
 
 const STANDARD_CATEGORIES = [
   'Fabric & GSM',
@@ -30,6 +31,7 @@ function BlogManagementView({ currentUser }) {
   const [categoryFilter, setCategoryFilter] = useState('ALL')
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [activeMainTab, setActiveMainTab] = useState('articles') // 'articles' or 'our_story'
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -249,7 +251,40 @@ function BlogManagementView({ currentUser }) {
 
   return (
     <div className="space-y-6">
-      {/* Top Header Strip */}
+      {/* Top Switcher Tabs: Articles Stream vs Our Story Section */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#ECE4D5] pb-3">
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('articles')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            activeMainTab === 'articles'
+              ? 'bg-[#0B1E38] text-white shadow-xs'
+              : 'bg-white text-[#6B6357] border border-[#DFD8CA] hover:bg-[#FAF8F5]'
+          }`}
+        >
+          <span>Articles &amp; Editorial Guides</span>
+          <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono">{blogs.length}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('our_story')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            activeMainTab === 'our_story'
+              ? 'bg-[#0B1E38] text-white shadow-xs'
+              : 'bg-white text-[#6B6357] border border-[#DFD8CA] hover:bg-[#FAF8F5]'
+          }`}
+        >
+          <span>Our Story Section CMS</span>
+          <span className="rounded bg-[#F95700]/20 text-[#F95700] px-1.5 py-0.5 font-mono text-[9.5px]">About Us</span>
+        </button>
+      </div>
+
+      {activeMainTab === 'our_story' ? (
+        <OurStoryManagementView currentUser={currentUser} />
+      ) : (
+        <>
+          {/* Top Header Strip */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
@@ -555,301 +590,303 @@ function BlogManagementView({ currentUser }) {
         )}
       </div>
 
-      {/* Write / Edit Article Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs">
-          <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl border border-[#DFD5C2] bg-white shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#ECE4D5] px-6 py-4 bg-[#FAF8F5]">
-              <div>
-                <h3 className="font-serif text-lg font-bold text-[#121214]">
-                  {editingBlog ? 'Edit Editorial Article' : 'Compose New B2B Editorial Article'}
-                </h3>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-[#9A6D22]">
-                  {editingBlog ? `ID: ${editingBlog._id}` : 'Buddy Vs Buff Content Engine'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="rounded-lg p-1.5 text-[#8A847B] hover:bg-[#F2ECE1] hover:text-[#121214]"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Form Scrollable Body */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
-              {/* Row 1: Title & Auto Slug */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
-                    Article Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => handleTitleChange(e.target.value)}
-                    placeholder="e.g. The Economics of 240 GSM Luxury Tees"
-                    className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs font-semibold text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B]">
-                      URL Slug *
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((p) => ({ ...p, slug: slugify(p.title) }))}
-                      className="text-[10px] text-[#9A6D22] hover:underline"
-                    >
-                      Regenerate from Title
-                    </button>
+          {/* Modal */}
+          {isModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs">
+              <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col rounded-2xl border border-[#DFD5C2] bg-white shadow-2xl overflow-hidden">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between border-b border-[#ECE4D5] px-6 py-4 bg-[#FAF8F5]">
+                  <div>
+                    <h3 className="font-serif text-lg font-bold text-[#121214]">
+                      {editingBlog ? 'Edit Editorial Article' : 'Compose New B2B Editorial Article'}
+                    </h3>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-[#9A6D22]">
+                      {editingBlog ? `ID: ${editingBlog._id}` : 'Buddy Vs Buff Content Engine'}
+                    </p>
                   </div>
-                  <input
-                    type="text"
-                    required
-                    value={formData.slug}
-                    onChange={(e) => setFormData((p) => ({ ...p, slug: slugify(e.target.value) }))}
-                    placeholder="e.g. economics-of-240-gsm-luxury-tees"
-                    className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs font-mono text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Row 2: Category, Tags, Status, Featured */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData((p) => ({ ...p, category: e.target.value }))}
-                    className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3 py-2 text-xs font-medium text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="rounded-lg p-1.5 text-[#8A847B] hover:bg-[#F2ECE1] hover:text-[#121214]"
                   >
-                    {STANDARD_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    ✕
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
-                    Tags (Comma Separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.tags}
-                    onChange={(e) => setFormData((p) => ({ ...p, tags: e.target.value }))}
-                    placeholder="240 GSM, Streetwear, Margins"
-                    className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
-                    Publication Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value }))}
-                    className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3 py-2 text-xs font-medium text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
-                  >
-                    <option value="published">Published &amp; Live</option>
-                    <option value="draft">Draft (Saved only)</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2 pt-6">
-                  <input
-                    type="checkbox"
-                    id="featuredCheckbox"
-                    checked={formData.featured}
-                    onChange={(e) => setFormData((p) => ({ ...p, featured: e.target.checked }))}
-                    className="h-4 w-4 rounded text-[#F95700] focus:ring-[#F95700]"
-                  />
-                  <label htmlFor="featuredCheckbox" className="text-xs font-semibold text-[#121214] cursor-pointer">
-                    Pin as Featured Hero
-                  </label>
-                </div>
-              </div>
-
-              {/* Row 3: Cover Image URL & Preview */}
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
-                  Banner / Cover Image URL
-                </label>
-                <div className="flex gap-3">
-                  <input
-                    type="url"
-                    value={formData.coverImageUrl}
-                    onChange={(e) => setFormData((p) => ({ ...p, coverImageUrl: e.target.value }))}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="flex-1 rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
-                  />
-                  {formData.coverImageUrl && (
-                    <img
-                      src={formData.coverImageUrl}
-                      alt="Cover Preview"
-                      className="h-9 w-14 rounded-lg object-cover border border-[#DFD8CA]"
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Row 4: Short Excerpt / Summary */}
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
-                  Article Summary / Excerpt * (Displayed on listing cards)
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData((p) => ({ ...p, excerpt: e.target.value }))}
-                  placeholder="Brief summary explaining what retail buyers will learn from this article..."
-                  className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none leading-relaxed"
-                />
-              </div>
-
-              {/* Row 5: Author Info Strip */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 bg-[#FAF8F5] p-3.5 rounded-xl border border-[#ECE4D5]">
-                <div>
-                  <label className="block text-[10px] font-mono uppercase text-[#7A746B] mb-0.5">Author Name</label>
-                  <input
-                    type="text"
-                    value={formData.authorName}
-                    onChange={(e) => setFormData((p) => ({ ...p, authorName: e.target.value }))}
-                    className="w-full rounded-lg border border-[#DFD8CA] bg-white px-2.5 py-1.5 text-xs text-[#121214]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono uppercase text-[#7A746B] mb-0.5">Author Role</label>
-                  <input
-                    type="text"
-                    value={formData.authorRole}
-                    onChange={(e) => setFormData((p) => ({ ...p, authorRole: e.target.value }))}
-                    className="w-full rounded-lg border border-[#DFD8CA] bg-white px-2.5 py-1.5 text-xs text-[#121214]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono uppercase text-[#7A746B] mb-0.5">Author Avatar URL</label>
-                  <input
-                    type="url"
-                    value={formData.authorAvatar}
-                    onChange={(e) => setFormData((p) => ({ ...p, authorAvatar: e.target.value }))}
-                    className="w-full rounded-lg border border-[#DFD8CA] bg-white px-2.5 py-1.5 text-xs text-[#121214]"
-                  />
-                </div>
-              </div>
-
-              {/* Row 6: Rich Content HTML Editor & Quick Tools */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#55514B]">
-                      Article Content Body (HTML) *
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewMode(!previewMode)}
-                      className="rounded bg-[#FAF3E4] px-2 py-0.5 font-mono text-[10px] font-bold text-[#805915] hover:bg-[#faebd0]"
-                    >
-                      {previewMode ? 'Switch to Code Editor' : 'Toggle Live HTML Preview'}
-                    </button>
-                  </div>
-
-                  {!previewMode && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => insertTag('<h2>', '</h2>')}
-                        className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] font-bold hover:bg-[#F2ECE1]"
-                      >
-                        H2
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => insertTag('<h3>', '</h3>')}
-                        className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] font-bold hover:bg-[#F2ECE1]"
-                      >
-                        H3
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => insertTag('<p>', '</p>')}
-                        className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] hover:bg-[#F2ECE1]"
-                      >
-                        Paragraph
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => insertTag('<blockquote>', '</blockquote>')}
-                        className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] hover:bg-[#F2ECE1]"
-                      >
-                        Quote
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => insertTag('<ul>\n  <li>', '</li>\n</ul>')}
-                        className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] hover:bg-[#F2ECE1]"
-                      >
-                        List
-                      </button>
+                {/* Modal Form Scrollable Body */}
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {/* Row 1: Title & Auto Slug */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
+                        Article Title *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.title}
+                        onChange={(e) => handleTitleChange(e.target.value)}
+                        placeholder="e.g. The Economics of 240 GSM Luxury Tees"
+                        className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs font-semibold text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                      />
                     </div>
-                  )}
-                </div>
 
-                {previewMode ? (
-                  <div
-                    className="prose prose-sm max-w-none rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] p-5 max-h-72 overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: formData.contentHtml }}
-                  />
-                ) : (
-                  <textarea
-                    rows={8}
-                    required
-                    value={formData.contentHtml}
-                    onChange={(e) => setFormData((p) => ({ ...p, contentHtml: e.target.value }))}
-                    placeholder="<p>Write your detailed article body in semantic HTML...</p>"
-                    className="w-full rounded-xl border border-[#DFD8CA] bg-[#FCFBF8] p-3.5 font-mono text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none leading-relaxed"
-                  />
-                )}
-              </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B]">
+                          URL Slug *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((p) => ({ ...p, slug: slugify(p.title) }))}
+                          className="text-[10px] text-[#9A6D22] hover:underline"
+                        >
+                          Regenerate from Title
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={formData.slug}
+                        onChange={(e) => setFormData((p) => ({ ...p, slug: slugify(e.target.value) }))}
+                        placeholder="e.g. economics-of-240-gsm-luxury-tees"
+                        className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs font-mono text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
 
-              {/* Form Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ECE4D5]">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-[#DFD8CA] bg-white px-4 py-2 text-xs font-semibold text-[#6B6357] hover:bg-[#FAF8F5]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#F95700] px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#e04e00] disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      <span>Saving Article...</span>
-                    </>
-                  ) : (
-                    <span>{editingBlog ? 'Update Article' : 'Publish Article'}</span>
-                  )}
-                </button>
+                  {/* Row 2: Category, Tags, Status, Featured */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
+                        Category *
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData((p) => ({ ...p, category: e.target.value }))}
+                        className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3 py-2 text-xs font-medium text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                      >
+                        {STANDARD_CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
+                        Tags (Comma Separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.tags}
+                        onChange={(e) => setFormData((p) => ({ ...p, tags: e.target.value }))}
+                        placeholder="240 GSM, Streetwear, Margins"
+                        className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
+                        Publication Status
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value }))}
+                        className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3 py-2 text-xs font-medium text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                      >
+                        <option value="published">Published &amp; Live</option>
+                        <option value="draft">Draft (Saved only)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-6">
+                      <input
+                        type="checkbox"
+                        id="featuredCheckbox"
+                        checked={formData.featured}
+                        onChange={(e) => setFormData((p) => ({ ...p, featured: e.target.checked }))}
+                        className="h-4 w-4 rounded text-[#F95700] focus:ring-[#F95700]"
+                      />
+                      <label htmlFor="featuredCheckbox" className="text-xs font-semibold text-[#121214] cursor-pointer">
+                        Pin as Featured Hero
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Row 3: Cover Image URL & Preview */}
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
+                      Banner / Cover Image URL
+                    </label>
+                    <div className="flex gap-3">
+                      <input
+                        type="url"
+                        value={formData.coverImageUrl}
+                        onChange={(e) => setFormData((p) => ({ ...p, coverImageUrl: e.target.value }))}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        className="flex-1 rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none"
+                      />
+                      {formData.coverImageUrl && (
+                        <img
+                          src={formData.coverImageUrl}
+                          alt="Cover Preview"
+                          className="h-9 w-14 rounded-lg object-cover border border-[#DFD8CA]"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 4: Short Excerpt / Summary */}
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase tracking-wider text-[#55514B] mb-1">
+                      Article Summary / Excerpt * (Displayed on listing cards)
+                    </label>
+                    <textarea
+                      rows={2}
+                      required
+                      value={formData.excerpt}
+                      onChange={(e) => setFormData((p) => ({ ...p, excerpt: e.target.value }))}
+                      placeholder="Brief summary explaining what retail buyers will learn from this article..."
+                      className="w-full rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] px-3.5 py-2 text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Row 5: Author Info Strip */}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 bg-[#FAF8F5] p-3.5 rounded-xl border border-[#ECE4D5]">
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase text-[#7A746B] mb-0.5">Author Name</label>
+                      <input
+                        type="text"
+                        value={formData.authorName}
+                        onChange={(e) => setFormData((p) => ({ ...p, authorName: e.target.value }))}
+                        className="w-full rounded-lg border border-[#DFD8CA] bg-white px-2.5 py-1.5 text-xs text-[#121214]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase text-[#7A746B] mb-0.5">Author Role</label>
+                      <input
+                        type="text"
+                        value={formData.authorRole}
+                        onChange={(e) => setFormData((p) => ({ ...p, authorRole: e.target.value }))}
+                        className="w-full rounded-lg border border-[#DFD8CA] bg-white px-2.5 py-1.5 text-xs text-[#121214]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase text-[#7A746B] mb-0.5">Author Avatar URL</label>
+                      <input
+                        type="url"
+                        value={formData.authorAvatar}
+                        onChange={(e) => setFormData((p) => ({ ...p, authorAvatar: e.target.value }))}
+                        className="w-full rounded-lg border border-[#DFD8CA] bg-white px-2.5 py-1.5 text-xs text-[#121214]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 6: Rich Content HTML Editor & Quick Tools */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-[#55514B]">
+                          Article Content Body (HTML) *
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewMode(!previewMode)}
+                          className="rounded bg-[#FAF3E4] px-2 py-0.5 font-mono text-[10px] font-bold text-[#805915] hover:bg-[#faebd0]"
+                        >
+                          {previewMode ? 'Switch to Code Editor' : 'Toggle Live HTML Preview'}
+                        </button>
+                      </div>
+
+                      {!previewMode && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => insertTag('<h2>', '</h2>')}
+                            className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] font-bold hover:bg-[#F2ECE1]"
+                          >
+                            H2
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertTag('<h3>', '</h3>')}
+                            className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] font-bold hover:bg-[#F2ECE1]"
+                          >
+                            H3
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertTag('<p>', '</p>')}
+                            className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] hover:bg-[#F2ECE1]"
+                          >
+                            Paragraph
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertTag('<blockquote>', '</blockquote>')}
+                            className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] hover:bg-[#F2ECE1]"
+                          >
+                            Quote
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertTag('<ul>\n  <li>', '</li>\n</ul>')}
+                            className="rounded bg-white px-1.5 py-0.5 border border-[#DFD8CA] text-[10px] hover:bg-[#F2ECE1]"
+                          >
+                            List
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {previewMode ? (
+                      <div
+                        className="prose prose-sm max-w-none rounded-xl border border-[#DFD8CA] bg-[#FAF8F5] p-5 max-h-72 overflow-y-auto"
+                        dangerouslySetInnerHTML={{ __html: formData.contentHtml }}
+                      />
+                    ) : (
+                      <textarea
+                        rows={8}
+                        required
+                        value={formData.contentHtml}
+                        onChange={(e) => setFormData((p) => ({ ...p, contentHtml: e.target.value }))}
+                        placeholder="<p>Write your detailed article body in semantic HTML...</p>"
+                        className="w-full rounded-xl border border-[#DFD8CA] bg-[#FCFBF8] p-3.5 font-mono text-xs text-[#121214] focus:border-[#F95700] focus:bg-white focus:outline-none leading-relaxed"
+                      />
+                    )}
+                  </div>
+
+                  {/* Form Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#ECE4D5]">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="rounded-xl border border-[#DFD8CA] bg-white px-4 py-2 text-xs font-semibold text-[#6B6357] hover:bg-[#FAF8F5]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#F95700] px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#e04e00] disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          <span>Saving Article...</span>
+                        </>
+                      ) : (
+                        <span>{editingBlog ? 'Update Article' : 'Publish Article'}</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

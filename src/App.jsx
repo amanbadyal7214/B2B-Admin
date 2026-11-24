@@ -17,6 +17,7 @@ import AdminOrdersView from './components/AdminOrdersView'
 import AdminInventoryView from './components/AdminInventoryView'
 import AdminRetailersView from './components/AdminRetailersView'
 import BlogManagementView from './components/BlogManagementView'
+import OurStoryManagementView from './components/OurStoryManagementView'
 import { clearAdminSession } from './api'
 
 function App() {
@@ -392,6 +393,18 @@ function App() {
                     <Route
                       path="cms"
                       element={<BlogManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="our-story"
+                      element={<OurStoryManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="story"
+                      element={<OurStoryManagementView currentUser={currentUser} />}
+                    />
+                    <Route
+                      path="about-us"
+                      element={<OurStoryManagementView currentUser={currentUser} />}
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}

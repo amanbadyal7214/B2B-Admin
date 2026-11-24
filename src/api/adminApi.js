@@ -572,6 +572,22 @@ export const toggleBlogPublishApi = async (id) => {
 }
 
 /**
+ * Our Story / Brand Heritage CMS APIs
+ */
+export const getOurStoryApi = async () => {
+  const response = await axiosInstance.get('/api/our-story')
+  return response.data
+}
+
+export const updateOurStoryApi = async (data) => {
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
+  const response = await axiosInstance.put('/api/our-story', data, {
+    headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+  })
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

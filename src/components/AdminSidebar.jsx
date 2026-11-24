@@ -46,6 +46,10 @@ export default function AdminSidebar({
 
   const isPincodePath = currentPath.includes('/pincode')
   const isBlogPath = currentPath.includes('/blog')
+  const isStoryPath =
+    currentPath.includes('/our-story') ||
+    currentPath.includes('/story') ||
+    currentPath.includes('/about-us')
 
   const isAdministratorPath =
     currentPath.includes('/admin-users') ||
@@ -772,6 +776,32 @@ export default function AdminSidebar({
           {!isCollapsed && (
             <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
               CMS
+            </span>
+          )}
+        </button>
+
+        {/* 10.6 Our Story CMS */}
+        <button
+          type="button"
+          onClick={() => handleNav('/dashboard/our-story')}
+          title="Our Story & Atelier CMS"
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+            isStoryPath
+              ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+              : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={isStoryPath ? 'text-white' : 'text-[#8E9CAE]'}>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            {!isCollapsed && <span className="truncate">Our Story CMS</span>}
+          </div>
+          {!isCollapsed && (
+            <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
+              About Us
             </span>
           )}
         </button>
