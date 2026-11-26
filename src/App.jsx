@@ -18,7 +18,9 @@ import AdminInventoryView from './components/AdminInventoryView'
 import AdminRetailersView from './components/AdminRetailersView'
 import BlogManagementView from './components/BlogManagementView'
 import OurStoryManagementView from './components/OurStoryManagementView'
+import AnnouncementManagementView from './components/AnnouncementManagementView'
 import AdminReferralsView from './components/AdminReferralsView'
+import ContactManagementView from './components/ContactManagementView'
 import { clearAdminSession } from './api'
 
 function ModuleGuard({ moduleKey, currentUser, children }) {
@@ -27,10 +29,18 @@ function ModuleGuard({ moduleKey, currentUser, children }) {
     Array.isArray(currentUser?.modules) && currentUser.modules.length > 0
       ? currentUser.modules
       : isSuperAdmin
-      ? ['orders', 'products', 'inventory', 'retailers', 'invoices', 'pincodes', 'blog', 'referrals', 'roles']
+      ? ['orders', 'products', 'inventory', 'retailers', 'inquiries', 'invoices', 'pincodes', 'blog', 'referrals', 'roles']
       : ['orders', 'products']
 
-  if (isSuperAdmin || userModules.includes(moduleKey)) {
+  const hasAccess =
+    isSuperAdmin ||
+    (Array.isArray(moduleKey)
+      ? moduleKey.some((k) => userModules.includes(k))
+      : userModules.includes(moduleKey) ||
+        (moduleKey === 'retailers' && userModules.includes('inquiries')) ||
+        (moduleKey === 'inquiries' && userModules.includes('retailers')))
+
+  if (hasAccess) {
     return children
   }
 
@@ -309,6 +319,32 @@ function App() {
                       element={
                         <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
                           <AdminRetailersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
+                    />
+
+                    {/* /dashboard/inquiries & contact -> Wholesale Buyer Inquiries & Contact Desk CMS */}
+                    <Route
+                      path="inquiries"
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <ContactManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
+                    />
+                    <Route
+                      path="inquiry"
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <ContactManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
+                    />
+                    <Route
+                      path="contact"
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <ContactManagementView currentUser={currentUser} />
                         </ModuleGuard>
                       }
                     />
@@ -633,6 +669,32 @@ function App() {
                       element={
                         <ModuleGuard moduleKey="blog" currentUser={currentUser}>
                           <OurStoryManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
+                    />
+
+                    {/* /dashboard/announcements -> Top Announcement Banner Ticker CMS */}
+                    <Route
+                      path="announcements"
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <AnnouncementManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
+                    />
+                    <Route
+                      path="announcement"
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <AnnouncementManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
+                    />
+                    <Route
+                      path="top-banner"
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <AnnouncementManagementView currentUser={currentUser} />
                         </ModuleGuard>
                       }
                     />

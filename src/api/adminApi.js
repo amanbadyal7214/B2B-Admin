@@ -663,6 +663,52 @@ export const triggerMaturedReferralsApi = async () => {
 }
 
 /**
+ * Top Announcement Banner Ticker APIs
+ */
+export const getAnnouncementsApi = async () => {
+  const response = await axiosInstance.get('/api/announcements')
+  return response.data
+}
+
+export const updateAnnouncementsApi = async (payload) => {
+  const response = await axiosInstance.put('/api/announcements', payload)
+  return response.data
+}
+
+export const resetAnnouncementsApi = async () => {
+  const response = await axiosInstance.post('/api/announcements/reset')
+  return response.data
+}
+
+/**
+ * Wholesale Buyer Inquiries & Contact Desk APIs
+ */
+export const getAdminInquiriesApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/contact/admin/inquiries', { params })
+  return response.data
+}
+
+export const updateAdminInquiryStatusApi = async (id, payload) => {
+  const response = await axiosInstance.put(`/api/contact/admin/inquiries/${id}`, payload)
+  return response.data
+}
+
+export const deleteAdminInquiryApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/contact/admin/inquiries/${id}`)
+  return response.data
+}
+
+export const getAdminContactConfigApi = async () => {
+  const response = await axiosInstance.get('/api/contact/config')
+  return response.data
+}
+
+export const updateAdminContactConfigApi = async (payload) => {
+  const response = await axiosInstance.put('/api/contact/admin/config', payload)
+  return response.data
+}
+
+/**
  * Administrative Session Logout helper
  */
 export const clearAdminSession = () => {

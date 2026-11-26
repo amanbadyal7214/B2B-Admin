@@ -19,7 +19,7 @@ export default function AdminSidebar({
     Array.isArray(currentUser?.modules) && currentUser.modules.length > 0
       ? currentUser.modules
       : isSuperAdmin
-      ? ['orders', 'products', 'inventory', 'retailers', 'invoices', 'pincodes', 'blog', 'referrals', 'roles']
+      ? ['orders', 'products', 'inventory', 'retailers', 'invoices', 'pincodes', 'blog', 'referrals', 'roles', 'inquiries']
       : ['orders', 'products']
 
   const canAccess = (moduleKey) => isSuperAdmin || userModules.includes(moduleKey)
@@ -61,6 +61,14 @@ export default function AdminSidebar({
     currentPath.includes('/our-story') ||
     currentPath.includes('/story') ||
     currentPath.includes('/about-us')
+  const isAnnouncementPath =
+    currentPath.includes('/announcements') ||
+    currentPath.includes('/announcement') ||
+    currentPath.includes('/top-banner')
+  const isContactPath =
+    currentPath.includes('/inquiries') ||
+    currentPath.includes('/inquiry') ||
+    currentPath.includes('/contact')
   const isReferralPath =
     currentPath.includes('/referral') ||
     currentPath.includes('/reward')
@@ -560,6 +568,34 @@ export default function AdminSidebar({
           </div>
         )}
 
+        {/* 5. Buyer Inquiries (Directly below Customers) */}
+        {(canAccess('retailers') || canAccess('inquiries')) && (
+          <button
+            type="button"
+            onClick={() => handleNav('/dashboard/inquiries')}
+            title="Wholesale Buyer Inquiries Desk"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isContactPath
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isContactPath ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Buyer Inquiries</span>}
+            </div>
+            {!isCollapsed && (
+              <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
+                Desk
+              </span>
+            )}
+          </button>
+        )}
+
         {/* 6. Inventory (Diamond Icon + Submenu) */}
         {canAccess('inventory') && (
           <div>
@@ -829,6 +865,35 @@ export default function AdminSidebar({
             {!isCollapsed && (
               <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
                 About Us
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* 10.65 Top Announcement Banner Ticker CMS */}
+        {canAccess('blog') && (
+          <button
+            type="button"
+            onClick={() => handleNav('/dashboard/announcements')}
+            title="Top Announcement Ticker CMS"
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all cursor-pointer ${
+              isAnnouncementPath
+                ? 'bg-[#F95700] text-white font-semibold shadow-[0_4px_12px_rgba(249,87,0,0.35)]'
+                : 'text-[#9AA8BC] hover:bg-[#122744] hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={isAnnouncementPath ? 'text-white' : 'text-[#8E9CAE]'}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 8a3 3 0 00-3-3H7a3 3 0 00-3 3v4a3 3 0 003 3h8a3 3 0 003-3V8z" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M18 12a4 4 0 000-8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              {!isCollapsed && <span className="truncate">Top Banner Ticker</span>}
+            </div>
+            {!isCollapsed && (
+              <span className="rounded bg-[#F95700]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#F95700] uppercase font-mono">
+                Ticker
               </span>
             )}
           </button>
