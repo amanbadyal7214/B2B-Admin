@@ -590,6 +590,20 @@ export default function AdminReferralsView() {
 
                         <td className="py-3 px-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
+                            {r.status === 'qualified' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOverrideTarget(r)
+                                  setOverrideAction('approved')
+                                }}
+                                className="rounded px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 font-mono text-[10px] font-bold hover:bg-emerald-100 cursor-pointer"
+                                title="Credit reward to referrer wallet immediately"
+                              >
+                                Credit Now
+                              </button>
+                            )}
+
                             {r.status === 'blocked' ? (
                               <button
                                 type="button"
@@ -601,7 +615,7 @@ export default function AdminReferralsView() {
                               >
                                 Approve
                               </button>
-                            ) : (
+                            ) : r.status !== 'credited' ? (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -612,6 +626,8 @@ export default function AdminReferralsView() {
                               >
                                 Block
                               </button>
+                            ) : (
+                              <span className="font-mono text-[10px] font-bold text-emerald-700">✓ Credited</span>
                             )}
                           </div>
                         </td>
@@ -1144,8 +1160,8 @@ export default function AdminReferralsView() {
 
             <form onSubmit={handleOverrideSubmit} className="space-y-4">
               <p className="text-xs text-[#5C5852]">
-                Action: <strong className="uppercase font-mono text-[#F95700]">{overrideAction}</strong> for referral{' '}
-                <strong className="font-mono">{overrideTarget.referralCode}</strong>.
+                Action: <strong className="uppercase font-mono text-[#1F8F5A]">{overrideAction === 'approved' ? 'Approve & Credit Reward (₹1,000)' : overrideAction}</strong> for referral{' '}
+                <strong className="font-mono">{overrideTarget.referralCode}</strong> (Boutique: {overrideTarget.referredStoreName || overrideTarget.referredName || 'Partner'}).
               </p>
 
               <div>
