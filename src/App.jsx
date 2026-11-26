@@ -21,6 +21,35 @@ import OurStoryManagementView from './components/OurStoryManagementView'
 import AdminReferralsView from './components/AdminReferralsView'
 import { clearAdminSession } from './api'
 
+function ModuleGuard({ moduleKey, currentUser, children }) {
+  const isSuperAdmin = currentUser?.role === 'Super Administrator'
+  const userModules =
+    Array.isArray(currentUser?.modules) && currentUser.modules.length > 0
+      ? currentUser.modules
+      : isSuperAdmin
+      ? ['orders', 'products', 'inventory', 'retailers', 'invoices', 'pincodes', 'blog', 'referrals', 'roles']
+      : ['orders', 'products']
+
+  if (isSuperAdmin || userModules.includes(moduleKey)) {
+    return children
+  }
+
+  return (
+    <div className="p-8 max-w-xl mx-auto my-12 rounded-2xl border border-[#F0BCB8] bg-[#FFFFFF] p-8 shadow-sm text-center">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FDF2F1] text-2xl mb-4">
+        🔒
+      </div>
+      <h3 className="font-serif text-lg font-bold text-[#121214]">Restricted Module Clearance</h3>
+      <p className="mt-2 text-xs text-[#6E685E] leading-relaxed">
+        Your assigned role (<strong>{currentUser?.role || 'Staff Member'}</strong>) does not have authorization to view the <strong>{moduleKey.toUpperCase()}</strong> module.
+      </p>
+      <div className="mt-4 pt-3 border-t border-[#ECE4D5] text-[11px] text-[#A8A196]">
+        Please contact the Super Administrator to grant you module clearance.
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [currentUser, setCurrentUser] = useState(null)
   const [isInitializing, setIsInitializing] = useState(true)
@@ -185,259 +214,477 @@ function App() {
                     {/* /dashboard/orders -> Wholesale Orders & Dispatch Management */}
                     <Route
                       path="orders"
-                      element={<AdminOrdersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="orders" currentUser={currentUser}>
+                          <AdminOrdersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="order"
-                      element={<AdminOrdersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="orders" currentUser={currentUser}>
+                          <AdminOrdersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="wholesale-orders"
-                      element={<AdminOrdersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="orders" currentUser={currentUser}>
+                          <AdminOrdersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="manifests"
-                      element={<AdminOrdersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="orders" currentUser={currentUser}>
+                          <AdminOrdersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/inventory -> SKU Inventory, Stock Locks, Inward & Multi-Warehouse */}
                     <Route
                       path="inventory"
-                      element={<AdminInventoryView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="inventory" currentUser={currentUser}>
+                          <AdminInventoryView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="stock"
-                      element={<AdminInventoryView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="inventory" currentUser={currentUser}>
+                          <AdminInventoryView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="warehouses"
-                      element={<AdminInventoryView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="inventory" currentUser={currentUser}>
+                          <AdminInventoryView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/customer & retailers -> B2B Retailers, Trade Pass & Commercial Slabs */}
                     <Route
                       path="customer"
-                      element={<AdminRetailersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <AdminRetailersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="customers"
-                      element={<AdminRetailersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <AdminRetailersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="retailers"
-                      element={<AdminRetailersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <AdminRetailersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="retailer"
-                      element={<AdminRetailersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <AdminRetailersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="trade-pass"
-                      element={<AdminRetailersView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="retailers" currentUser={currentUser}>
+                          <AdminRetailersView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/products -> Wholesale Products & Variants Management */}
                     <Route
                       path="products"
-                      element={<ProductManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product"
-                      element={<ProductManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product-list"
-                      element={<ProductManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="all-products"
-                      element={<ProductManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-category -> Product Categories Management */}
                     <Route
                       path="product-category"
-                      element={<ProductCategoryView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductCategoryView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/category"
-                      element={<ProductCategoryView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductCategoryView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-type -> Product Types Management */}
                     <Route
                       path="product-type"
-                      element={<ProductTypeView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductTypeView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/type"
-                      element={<ProductTypeView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductTypeView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-size -> Product Sizes Management */}
                     <Route
                       path="product-size"
-                      element={<ProductSizeView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductSizeView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product-sizes"
-                      element={<ProductSizeView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductSizeView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/size"
-                      element={<ProductSizeView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductSizeView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/sizes"
-                      element={<ProductSizeView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductSizeView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-color -> Product Colours Management */}
                     <Route
                       path="product-color"
-                      element={<ProductColorView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductColorView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product-colors"
-                      element={<ProductColorView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductColorView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/color"
-                      element={<ProductColorView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductColorView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/colors"
-                      element={<ProductColorView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductColorView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-fit -> Product Fits Management */}
                     <Route
                       path="product-fit"
-                      element={<ProductFitView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFitView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product-fits"
-                      element={<ProductFitView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFitView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/fit"
-                      element={<ProductFitView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFitView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/fits"
-                      element={<ProductFitView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFitView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-fabric -> Product Fabrics & GSM Management */}
                     <Route
                       path="product-fabric"
-                      element={<ProductFabricView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFabricView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product-fabrics"
-                      element={<ProductFabricView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFabricView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/fabric"
-                      element={<ProductFabricView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFabricView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/fabrics"
-                      element={<ProductFabricView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductFabricView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/product-moq -> Product MOQ & Pack Types Management */}
                     <Route
                       path="product-moq"
-                      element={<ProductMoqView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductMoqView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product-moqs"
-                      element={<ProductMoqView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductMoqView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/moq"
-                      element={<ProductMoqView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductMoqView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="product/moqs"
-                      element={<ProductMoqView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="products" currentUser={currentUser}>
+                          <ProductMoqView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/pincodes -> Logistics & Serviceable Delivery Pincodes */}
                     <Route
                       path="pincodes"
-                      element={<ServiceablePincodesView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="pincodes" currentUser={currentUser}>
+                          <ServiceablePincodesView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="pincode"
-                      element={<ServiceablePincodesView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="pincodes" currentUser={currentUser}>
+                          <ServiceablePincodesView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="delivery-pincodes"
-                      element={<ServiceablePincodesView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="pincodes" currentUser={currentUser}>
+                          <ServiceablePincodesView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/blogs -> Editorial & Blog CMS */}
                     <Route
                       path="blogs"
-                      element={<BlogManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <BlogManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="blog"
-                      element={<BlogManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <BlogManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="articles"
-                      element={<BlogManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <BlogManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="cms"
-                      element={<BlogManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <BlogManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="our-story"
-                      element={<OurStoryManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <OurStoryManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="story"
-                      element={<OurStoryManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <OurStoryManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="about-us"
-                      element={<OurStoryManagementView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="blog" currentUser={currentUser}>
+                          <OurStoryManagementView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/referrals -> Referral Marketing & Rewards Ledger */}
                     <Route
                       path="referrals"
-                      element={<AdminReferralsView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="referrals" currentUser={currentUser}>
+                          <AdminReferralsView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="referral"
-                      element={<AdminReferralsView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="referrals" currentUser={currentUser}>
+                          <AdminReferralsView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="rewards"
-                      element={<AdminReferralsView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="referrals" currentUser={currentUser}>
+                          <AdminReferralsView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
                     <Route
                       path="reward"
-                      element={<AdminReferralsView currentUser={currentUser} />}
+                      element={
+                        <ModuleGuard moduleKey="referrals" currentUser={currentUser}>
+                          <AdminReferralsView currentUser={currentUser} />
+                        </ModuleGuard>
+                      }
                     />
 
                     {/* /dashboard/admin-users -> Administrator Directory */}
                     <Route
                       path="admin-users"
                       element={
-                        <AdminManagementView
-                          activeView="admin_users"
-                          currentUser={currentUser}
-                          onNavigate={(view) => {
-                            if (view === 'create_admin') navigate('/dashboard/create-admin')
-                            else navigate('/dashboard/admin-users')
-                          }}
-                        />
+                        <ModuleGuard moduleKey="roles" currentUser={currentUser}>
+                          <AdminManagementView
+                            activeView="admin_users"
+                            currentUser={currentUser}
+                            onNavigate={(view) => {
+                              if (view === 'create_admin') navigate('/dashboard/create-admin')
+                              else navigate('/dashboard/admin-users')
+                            }}
+                          />
+                        </ModuleGuard>
                       }
                     />
 
@@ -445,14 +692,16 @@ function App() {
                     <Route
                       path="create-admin"
                       element={
-                        <AdminManagementView
-                          activeView="create_admin"
-                          currentUser={currentUser}
-                          onNavigate={(view) => {
-                            if (view === 'admin_users') navigate('/dashboard/admin-users')
-                            else navigate('/dashboard/create-admin')
-                          }}
-                        />
+                        <ModuleGuard moduleKey="roles" currentUser={currentUser}>
+                          <AdminManagementView
+                            activeView="create_admin"
+                            currentUser={currentUser}
+                            onNavigate={(view) => {
+                              if (view === 'admin_users') navigate('/dashboard/admin-users')
+                              else navigate('/dashboard/create-admin')
+                            }}
+                          />
+                        </ModuleGuard>
                       }
                     />
 
@@ -460,11 +709,13 @@ function App() {
                     <Route
                       path="roles"
                       element={
-                        <AdminManagementView
-                          activeView="roles_clearance"
-                          currentUser={currentUser}
-                          onNavigate={() => {}}
-                        />
+                        <ModuleGuard moduleKey="roles" currentUser={currentUser}>
+                          <AdminManagementView
+                            activeView="roles_clearance"
+                            currentUser={currentUser}
+                            onNavigate={() => {}}
+                          />
+                        </ModuleGuard>
                       }
                     />
 
@@ -472,11 +723,13 @@ function App() {
                     <Route
                       path="audit-logs"
                       element={
-                        <AdminManagementView
-                          activeView="audit_logs"
-                          currentUser={currentUser}
-                          onNavigate={() => {}}
-                        />
+                        <ModuleGuard moduleKey="roles" currentUser={currentUser}>
+                          <AdminManagementView
+                            activeView="audit_logs"
+                            currentUser={currentUser}
+                            onNavigate={() => {}}
+                          />
+                        </ModuleGuard>
                       }
                     />
 

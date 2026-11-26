@@ -34,6 +34,33 @@ export const createAdminApi = async (adminData) => {
 }
 
 /**
+ * Fetch all administrator & staff accounts with assigned modules
+ * GET /api/admin/users
+ */
+export const getAllAdminUsersApi = async () => {
+  const response = await axiosInstance.get('/api/admin/users')
+  return response.data
+}
+
+/**
+ * Update staff account (role, assigned modules, status, password)
+ * PUT /api/admin/users/:id
+ */
+export const updateAdminUserApi = async (id, payload) => {
+  const response = await axiosInstance.put(`/api/admin/users/${encodeURIComponent(id)}`, payload)
+  return response.data
+}
+
+/**
+ * Delete administrator or staff account
+ * DELETE /api/admin/users/:id
+ */
+export const deleteAdminUserApi = async (id) => {
+  const response = await axiosInstance.delete(`/api/admin/users/${encodeURIComponent(id)}`)
+  return response.data
+}
+
+/**
  * Trigger Auto-seed for Default Executive Accounts
  * POST /api/admin/seed
  */
